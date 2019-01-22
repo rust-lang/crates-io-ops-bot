@@ -4,6 +4,7 @@
   "description": "a bot to help assist the crates.io, website, and other rust ops teams",
   "main": "index.js",
   "scripts": {
+    "start": "node index",
     "test": "mocha && npm run test:style",
     "test:style": "standard --fix"
   },
