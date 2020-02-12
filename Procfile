@@ -1,0 +1,1 @@
+web: ./target/release/crates-io-ops-bot

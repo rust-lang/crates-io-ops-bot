@@ -18,6 +18,8 @@ management without needing full credentials to Heroku.
 
 ### Stage 1
 
+(Still in progress)
+
 Stage 1 of this bot will allow an authorized Discord member to:
 * Update select environmental variables (not including things like API keys)
 * Restart the application (which fixes most issues)
@@ -30,3 +32,103 @@ Stage 1 of this bot will allow an authorized Discord member to:
 ### Future Stages
 
 To be determined!
+
+## Usage
+
+This Discord bot allows you to run commands in a Discord channel like this:
+
+```
+~command
+```
+
+For example, if you run the ~ping command is a Discord channel, this bot will respond with "Pong!"
+
+```
+you: ~ping
+crates-io-bot: @you:Pong!
+```
+
+If you run the ~multiply command with two numbers, this bot will respond with the product of the two numbers.
+
+```
+you: ~multiply 2 2
+crates-io-bot: 4
+```
+
+These are obviously contrived commands, there will be commands specific to managing the crates.io infrastructure very soon.
+
+## Setup
+
+To setup this Discord bot, you need:
+* A [Discord Account](https://discordapp.com/))
+* A [Discord Server](https://support.discordapp.com/hc/en-us/articles/204849977-How-do-I-create-a-server-))
+* A [Heroku Account](https://www.heroku.com/)
+
+Go ahead and clone this repo and cd into the directory:
+
+```bash
+git clone https://github.com/rust-lang/crates-io-ops-bot.git
+cd crates-io-ops-bot
+```
+
+### Setting Up a Discord Application
+
+To use this bot, you will need to set up a Discord application through the [Discorse Developer Portal](https://discordapp.com/developers/). 
+
+[This blog post on Davao JS](https://medium.com/davao-js/2019-tutorial-creating-your-first-simple-discord-bot-47fc836a170b) has a good guide
+on creating a Discord application and generating the token key. Skip to the "Generating Token Key" heading in the post and come back here
+when you create the token.
+
+Make sure to store the token somewhere safe! You will need it!
+
+To use the token in development and testing, you need to add it to your .env file. 
+To set that file up:
+
+```bash
+cp .env.sample .env
+```
+
+Then add the token to your .env file:
+
+**.env**
+```
+DISCORD_TOKEN="<paste your token here>"
+```
+
+To use the token in production, make sure to set it wherever you define your environmental variables
+for your production environment.
+
+### Setting up Authorized Users
+
+Currently, all commands can be run by anyone in the Discord server running this bot.
+
+However, as we add new commands specific to managing infrastructure, some of those will be restricted to specific users.
+
+You can enable a user to run restricted commands by adding their Discord user name (not their server nickname) to the AUTHORIZED_USERS environmental variable.
+
+To use the list of authorized users in development and test environments, set the variable in your .env file
+
+**.env**
+```
+AUTHORIZED_USERS="awesomediscordusername,anotherdiscordusername"
+```
+
+To use the authorized user list in production, make sure to set it wherever you define your environmental variables
+for your production environment.
+
+### Running locally
+
+You can run this bot in your local environment with this command (make sure you are in your copy of this repo)
+
+```bash
+cargo run
+```
+
+Once it is running, you will see the bot in the "online" list on your Discord Server. Try out the commands!
+
+### Running in Heroku
+
+You can also easily run this bot in Heroku.
+
+[This blog post on Davao JS](https://medium.com/davao-js/v2-tutorial-deploy-your-discord-bot-to-heroku-part-2-9a37572d5de4) has a good guide to manually setting 
+up a Discord bot in Heroku. Make sure you set the DISCORD_TOKEN and (if necessary) AUTHORIZED_USERS environmental variables for your Heroku application!
