@@ -29,4 +29,4 @@ Stage 1 of this bot will allow an authorized Discord member to:
 
 ### Future Stages
 
-Once stage 1 is complete, we will consider expanding this bot to be used with other types of infrastructure - i.e. AWS or Microsoft Azure. 
+To be determined!
