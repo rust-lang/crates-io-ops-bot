@@ -2,7 +2,7 @@ fn authorized_users() -> Vec<String> {
     dotenv::var("AUTHORIZED_USERS")
         .unwrap()
         .split(',')
-        .map(|user| String::from(user))
+        .map(String::from)
         .collect()
 }
 
