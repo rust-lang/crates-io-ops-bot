@@ -5,7 +5,7 @@ use serenity::prelude::{Context, EventHandler};
 
 mod commands;
 
-use commands::{math::*, ping::*, myid::*};
+use commands::{math::*, myid::*, ping::*};
 
 mod authorizations;
 
