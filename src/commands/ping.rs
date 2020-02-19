@@ -8,7 +8,7 @@ use crate::authorizations::users::*;
 fn ping(ctx: &mut Context, msg: &Message) -> CommandResult {
     println!("running pong command");
 
-    if is_authorized(msg.author.id.to_string()) {
+    if is_authorized(&msg.author.id.to_string()) {
         msg.reply(ctx, "Pong!")?;
     } else {
         msg.reply(

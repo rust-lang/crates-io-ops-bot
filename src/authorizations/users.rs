@@ -6,8 +6,8 @@ fn authorized_users() -> Vec<String> {
         .collect()
 }
 
-pub fn is_authorized(id: String) -> bool {
-    authorized_users().contains(&id)
+pub fn is_authorized(id: &str) -> bool {
+   authorized_users().contains(&String::from(id))
 }
 
 #[cfg(test)]
@@ -15,7 +15,7 @@ mod tests {
     use super::*;
 
     // The Authorized users environmental variable
-    // is set for local tests in the .env file
+    // is set for tests in the .env file
 
     #[test]
     fn list_authorized_users() {
@@ -35,8 +35,8 @@ mod tests {
 
     #[test]
     fn check_whether_user_is_authorized() {
-        assert!(is_authorized(String::from("123")));
-        assert!(is_authorized(String::from("456")));
-        assert!(!is_authorized(String::from("789")));
+        assert!(is_authorized("123"));
+        assert!(is_authorized("456"));
+        assert!(!is_authorized("789"));
     }
 }
