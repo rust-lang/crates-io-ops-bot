@@ -5,14 +5,14 @@ use serenity::prelude::{Context, EventHandler};
 
 mod commands;
 
-use commands::{math::*, ping::*};
+use commands::{math::*, ping::*, myid::*};
 
 mod authorizations;
 
 use authorizations::users::*;
 
 #[group]
-#[commands(ping, multiply)]
+#[commands(ping, multiply, myid)]
 struct General;
 
 struct Handler;
