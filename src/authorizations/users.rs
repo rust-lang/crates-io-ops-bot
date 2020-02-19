@@ -15,10 +15,13 @@ mod tests {
     use std::env;
     use super::*;
 
+    fn set_authorized_users() {
+        env::set_var("AUTHORIZED_USERS", "123,456");
+    }
+
     #[test]
     fn list_authorized_users() {
-        let test_auth_users = "123,456";
-        env::set_var("AUTHORIZED_USERS", test_auth_users);
+        set_authorized_users();
 
         let result = authorized_users();
         assert!(
@@ -36,6 +39,8 @@ mod tests {
 
     #[test]
     fn check_whether_user_is_authorized() {
+        set_authorized_users();
+
         assert!(is_authorized("123"));
         assert!(is_authorized("456"));
         assert!(!is_authorized("789"));
