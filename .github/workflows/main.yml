@@ -2,7 +2,7 @@ name: Rust
 on: [push, pull_request]
 env:
   CARGO_TARGET_DIR: target
-  AUTHORIZED_USERS: "luke,leia"
+  AUTHORIZED_USERS: "123,456"
 jobs:
    build:
      runs-on: ubuntu-latest
