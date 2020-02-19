@@ -12,13 +12,14 @@ pub fn is_authorized(id: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use std::env;
     use super::*;
-
-    // The Authorized users environmental variable
-    // is set for tests in the .env file
 
     #[test]
     fn list_authorized_users() {
+        let test_auth_users = "123,456";
+        env::set_var("AUTHORIZED_USERS", test_auth_users);
+
         let result = authorized_users();
         assert!(
             result.contains(&String::from("123")),
