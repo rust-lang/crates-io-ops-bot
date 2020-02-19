@@ -9,8 +9,6 @@ use commands::{math::*, ping::*, myid::*};
 
 mod authorizations;
 
-use authorizations::users::*;
-
 #[group]
 #[commands(ping, multiply, myid)]
 struct General;

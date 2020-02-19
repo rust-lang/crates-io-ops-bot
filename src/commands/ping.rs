@@ -6,11 +6,16 @@ use crate::authorizations::users::*;
 
 #[command]
 fn ping(ctx: &mut Context, msg: &Message) -> CommandResult {
-    let author_name = &msg.author.name;
-    println!("Message {:?}", author_name);
     println!("running pong command");
-
-    msg.reply(ctx, "Pong!")?;
+    
+    if is_authorized(msg.author.id.to_string()) {
+        msg.reply(ctx, "Pong!")?;
+    } else {
+        msg.reply(
+            ctx,
+            format!("{}'s Discord ID is not authorized to run this command", msg.author.name)
+        )?;
+    }
 
     Ok(())
 }
