@@ -1,0 +1,16 @@
+name: Rust
+on: [push, pull_request]
+env:
+  CARGO_TARGET_DIR: target
+  AUTHORIZED_USERS: "luke,leia"
+jobs:
+   build:
+     runs-on: ubuntu-latest
+     steps:
+     - uses: actions/checkout@v2
+     # Set rustup toolchain
+     - run: rustup default ${{ matrix.channel }}
+     - uses: rust-lang/simpleinfra/github-actions/simple-ci@master
+     strategy:
+       matrix:
+         channel: [stable, beta, nightly]
