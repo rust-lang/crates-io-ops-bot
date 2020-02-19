@@ -55,13 +55,21 @@ you: ~multiply 2 2
 crates-io-bot: 4
 ```
 
+If you run the ~myid command, this bot will respond with your
+Discord account ID.
+
+```
+you: ~myid
+crates-io-bot: @you: Here is your user id 1234567
+```
+
 These are obviously contrived commands, there will be commands specific to managing the crates.io infrastructure very soon.
 
 ## Setup
 
 To setup this Discord bot, you need:
-* A [Discord Account](https://discordapp.com/))
-* A [Discord Server](https://support.discordapp.com/hc/en-us/articles/204849977-How-do-I-create-a-server-))
+* A [Discord Account](https://discordapp.com/)
+* A [Discord Server](https://support.discordapp.com/hc/en-us/articles/204849977-How-do-I-create-a-server-)
 * A [Heroku Account](https://www.heroku.com/)
 
 Go ahead and clone this repo and cd into the directory:
@@ -100,21 +108,21 @@ for your production environment.
 
 ### Setting up Authorized Users
 
-Currently, all commands can be run by anyone in the Discord server running this bot.
+Currently, all commands except ~ping can be run by anyone in the Discord server running this bot.
 
-However, as we add new commands specific to managing infrastructure, some of those will be restricted to specific users.
+~ping is a restricted command - only authorized users can run it.
 
-You can enable a user to run restricted commands by adding their Discord user name (not their server nickname) to the AUTHORIZED_USERS environmental variable.
+You can enable a user to run restricted commands by adding their Discord user id to the AUTHORIZED_USERS environmental variable.
 
 To use the list of authorized users in development and test environments, set the variable in your .env file
 
 **.env**
 ```
-AUTHORIZED_USERS="awesomediscordusername,anotherdiscordusername"
+AUTHORIZED_USERS="123,456"
 ```
 
-To use the authorized user list in production, make sure to set it wherever you define your environmental variables
-for your production environment.
+To use the authorized user list in a CI/CD or production environment, make sure to set it wherever you define your environmental variables
+for that environment.
 
 ### Running locally
 
