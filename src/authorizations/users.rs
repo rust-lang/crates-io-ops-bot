@@ -7,7 +7,7 @@ fn authorized_users() -> Vec<String> {
 }
 
 pub fn is_authorized(id: &str) -> bool {
-   authorized_users().contains(&String::from(id))
+   authorized_users().iter().any(|i| i == id)
 }
 
 #[cfg(test)]
