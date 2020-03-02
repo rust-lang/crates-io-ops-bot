@@ -9,4 +9,13 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 dotenv = "0.15"
-serenity = "0.8"
+serde_json = "1.0"
+heroku_rs = "0.2"
+
+# Uses native_tls_backend feature rather than the default rustls_backend
+# As serenity and heroku_rs depend on different versions of rustls_backend
+# This makes them compatible
+[dependencies.serenity]
+default-features = false
+features = ["builder", "cache", "client", "framework", "gateway", "http", "model", "standard_framework", "utils", "native_tls_backend"]
+version = "0.8"

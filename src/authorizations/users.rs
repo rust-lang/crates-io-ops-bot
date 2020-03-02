@@ -1,19 +1,22 @@
+use crate::config::Config;
+
 fn authorized_users() -> Vec<String> {
-    dotenv::var("AUTHORIZED_USERS")
-        .unwrap()
-        .split(',')
-        .map(String::from)
-        .collect()
+    let bot_config = Config::default();
+
+    let split_string = bot_config.authorized_users.split(',');
+    let auth_users: Vec<String> = split_string.map(String::from).collect();
+
+    auth_users
 }
 
 pub fn is_authorized(id: &str) -> bool {
-   authorized_users().iter().any(|i| i == id)
+    authorized_users().iter().any(|i| i == id)
 }
 
 #[cfg(test)]
 mod tests {
-    use std::env;
     use super::*;
+    use std::env;
 
     fn set_authorized_users() {
         env::set_var("AUTHORIZED_USERS", "123,456");

@@ -5,8 +5,7 @@ extern crate crates_io_ops_bot;
 extern crate dotenv;
 
 fn main() {
-    // Load Discord Token
-    let token = dotenv::var("DISCORD_TOKEN").expect("DISCORD_TOKEN must be set");
+    //    let config = crates_io_ops_bot::Config::new().unwrap();
 
-    crates_io_ops_bot::run(token)
+    crates_io_ops_bot::run()
 }

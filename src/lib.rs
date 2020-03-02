@@ -5,12 +5,16 @@ use serenity::prelude::{Context, EventHandler};
 
 mod commands;
 
-use commands::{math::*, myid::*, ping::*};
+use commands::{heroku::*, math::*, myid::*, ping::*};
 
 mod authorizations;
 
+mod config;
+
+use crate::config::Config;
+
 #[group]
-#[commands(ping, multiply, myid)]
+#[commands(ping, multiply, myid, get_apps)]
 struct General;
 
 struct Handler;
@@ -21,8 +25,9 @@ impl EventHandler for Handler {
     }
 }
 
-pub fn run(token: String) {
-    let mut client = Client::new(&token, Handler).expect("Err creating client");
+pub fn run() {
+    let mut client =
+        Client::new(Config::default().discord_token, Handler).expect("Err creating client");
 
     client.with_framework(
         StandardFramework::new()
