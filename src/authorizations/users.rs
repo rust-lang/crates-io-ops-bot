@@ -18,12 +18,22 @@ mod tests {
     use super::*;
     use std::env;
 
+    fn set_discord_token() {
+        env::set_var("DISCORD_TOKEN", "abc123");
+    }
+    
+    fn set_heroku_api_key() {
+        env::set_var("HEROKU_API", "abc123");
+    }
+
     fn set_authorized_users() {
         env::set_var("AUTHORIZED_USERS", "123,456");
     }
 
     #[test]
     fn list_authorized_users() {
+        set_discord_token();
+        set_heroku_api_key();
         set_authorized_users();
 
         let result = authorized_users();
