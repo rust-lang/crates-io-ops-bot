@@ -1,6 +1,6 @@
 use heroku_rs::client::{Executor, Heroku};
 
-use serde::{Deserialize};
+use serde::Deserialize;
 
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::*;
@@ -20,7 +20,10 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
     let data = ctx_clone.data.read();
     let config = data.get::<Config>().expect("Expected config");
 
-    let response = heroku_client(&config.heroku_api_key).get().apps().execute::<Vec<HerokuApp>>();
+    let response = heroku_client(&config.heroku_api_key)
+        .get()
+        .apps()
+        .execute::<Vec<HerokuApp>>();
     let mut processed_app_list: Vec<HerokuApp> = Vec::new();
 
     match response {
@@ -41,7 +44,6 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
 fn heroku_client(api_key: &str) -> heroku_rs::client::Heroku {
     Heroku::new(api_key).unwrap()
 }
-
 
 fn app_response(processed_app_list: Vec<HerokuApp>) -> String {
     let mut list = String::from("Here are your Heroku apps\n");

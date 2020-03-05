@@ -19,7 +19,7 @@ mod tests {
     fn set_discord_token() {
         env::set_var("DISCORD_TOKEN", "abc123");
     }
-    
+
     fn set_heroku_api_key() {
         env::set_var("HEROKU_API", "abc123");
     }
