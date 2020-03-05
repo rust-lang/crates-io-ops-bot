@@ -9,9 +9,9 @@ use commands::{heroku::*, math::*, myid::*, ping::*};
 
 mod authorizations;
 
-mod config;
+pub mod config;
 
-use crate::config::Config;
+use crate::config::config::Config;
 
 #[group]
 #[commands(ping, multiply, myid, get_apps)]
@@ -25,9 +25,7 @@ impl EventHandler for Handler {
     }
 }
 
-pub fn run() {
-    let config = Config::default();
-
+pub fn run(config: Config) {
     let mut client = Client::new(&config.discord_token, Handler).expect("Err creating client");
 
     // Insert default config into data

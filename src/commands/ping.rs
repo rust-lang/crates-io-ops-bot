@@ -3,7 +3,7 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 
 use crate::authorizations::users::*;
-use crate::config::Config;
+use crate::config::config::Config;
 
 #[command]
 fn ping(ctx: &mut Context, msg: &Message) -> CommandResult {

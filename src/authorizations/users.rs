@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::config::Config;
 
 fn authorized_users(config: &Config) -> Vec<String> {
     let split_string = config.authorized_users.split(',');
@@ -53,7 +53,7 @@ mod tests {
         set_discord_token();
         set_heroku_api_key();
         set_authorized_users();
- 
+
         let config = Config::default();
 
         assert!(is_authorized("123", &config));

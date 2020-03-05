@@ -3,7 +3,9 @@
 
 extern crate crates_io_ops_bot;
 extern crate dotenv;
+use crates_io_ops_bot::config::config::Config;
 
 fn main() {
-    crates_io_ops_bot::run()
+    let config = Config::default();
+    crates_io_ops_bot::run(config)
 }
