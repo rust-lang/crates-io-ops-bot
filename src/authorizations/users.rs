@@ -50,8 +50,11 @@ mod tests {
 
     #[test]
     fn check_whether_user_is_authorized() {
-        let config = Config::default();
+        set_discord_token();
+        set_heroku_api_key();
         set_authorized_users();
+ 
+        let config = Config::default();
 
         assert!(is_authorized("123", &config));
         assert!(is_authorized("456", &config));
