@@ -1,16 +1,14 @@
 use crate::config::Config;
 
-fn authorized_users() -> Vec<String> {
-    let bot_config = Config::default();
-
-    let split_string = bot_config.authorized_users.split(',');
+fn authorized_users(config: &Config) -> Vec<String> {
+    let split_string = config.authorized_users.split(',');
     let auth_users: Vec<String> = split_string.map(String::from).collect();
 
     auth_users
 }
 
-pub fn is_authorized(id: &str) -> bool {
-    authorized_users().iter().any(|i| i == id)
+pub fn is_authorized(id: &str, config: &Config) -> bool {
+    authorized_users(config).iter().any(|i| i == id)
 }
 
 #[cfg(test)]

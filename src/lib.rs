@@ -26,15 +26,17 @@ impl EventHandler for Handler {
 }
 
 pub fn run() {
+    let config = Config::default();
+
     let mut client =
-        Client::new(Config::default().discord_token, Handler).expect("Err creating client");
+        Client::new(&config.discord_token, Handler).expect("Err creating client");
 
 
     // Insert default config into data
     // that is passed to each of the commands
     {
         let mut data = client.data.write();
-        data.insert::<Config>(Config::default());
+        data.insert::<Config>(config);
     }
 
     client.with_framework(
