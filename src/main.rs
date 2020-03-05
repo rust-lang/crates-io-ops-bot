@@ -5,7 +5,5 @@ extern crate crates_io_ops_bot;
 extern crate dotenv;
 
 fn main() {
-    //    let config = crates_io_ops_bot::Config::new().unwrap();
-
     crates_io_ops_bot::run()
 }
