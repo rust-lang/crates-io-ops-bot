@@ -1,6 +1,6 @@
 use heroku_rs::client::{Executor, Heroku};
 
-use serde_json::Value;
+use serde::{Deserialize};
 
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::*;
@@ -8,7 +8,7 @@ use serenity::prelude::*;
 
 use crate::config::Config;
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 struct HerokuApp {
     id: String,
     name: String,
@@ -16,14 +16,13 @@ struct HerokuApp {
 
 #[command]
 pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
-    let response = heroku_client().get().apps().execute::<Value>();
+    let response = heroku_client().get().apps().execute::<Vec<HerokuApp>>();
     let mut processed_app_list: Vec<HerokuApp> = Vec::new();
 
     match response {
         Ok((_headers, _status, json)) => {
-            if let Some(json) = json {
-                let array = json.as_array().unwrap();
-                processed_app_list.append(&mut app_list(array))
+            if let Some(mut json) = json {
+                processed_app_list.append(&mut json);
             }
         }
 
@@ -38,20 +37,6 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
 fn heroku_client() -> heroku_rs::client::Heroku {
     let heroku_api_key = Config::default().heroku_api_key;
     Heroku::new(heroku_api_key).unwrap()
-}
-
-fn app_list(app_array: &std::vec::Vec<serde_json::value::Value>) -> Vec<HerokuApp> {
-    let mut app_list: Vec<HerokuApp> = Vec::new();
-
-    for item in app_array.iter() {
-        let app: HerokuApp = HerokuApp {
-            id: item["id"].to_string(),
-            name: item["name"].to_string(),
-        };
-        app_list.push(app);
-    }
-
-    app_list
 }
 
 fn app_response(processed_app_list: Vec<HerokuApp>) -> String {
