@@ -1,3 +1,6 @@
+use serenity::prelude::TypeMapKey;
+
+#[derive(Debug)]
 pub struct Config {
     pub discord_token: String,
     pub authorized_users: String,
@@ -12,6 +15,10 @@ impl Default for Config {
             heroku_api_key: heroku_api_key(),
         }
     }
+}
+
+impl TypeMapKey for Config {
+    type Value = Config;
 }
 
 fn discord_token() -> String {

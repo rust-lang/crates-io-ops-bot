@@ -29,6 +29,14 @@ pub fn run() {
     let mut client =
         Client::new(Config::default().discord_token, Handler).expect("Err creating client");
 
+
+    // Insert default config into data
+    // that is passed to each of the commands
+    {
+        let mut data = client.data.write();
+        data.insert::<Config>(Config::default());
+    }
+
     client.with_framework(
         StandardFramework::new()
             .configure(|c| c.prefix("~")) // set the bot's prefix to "~"

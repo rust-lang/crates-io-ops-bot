@@ -16,7 +16,11 @@ struct HerokuApp {
 
 #[command]
 pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
-    let response = heroku_client().get().apps().execute::<Vec<HerokuApp>>();
+    let ctx_clone = ctx.clone();
+    let data = ctx_clone.data.read();
+    let config = data.get::<Config>().expect("Expected config");
+
+    let response = heroku_client(&config.heroku_api_key).get().apps().execute::<Vec<HerokuApp>>();
     let mut processed_app_list: Vec<HerokuApp> = Vec::new();
 
     match response {
@@ -34,10 +38,10 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
     Ok(())
 }
 
-fn heroku_client() -> heroku_rs::client::Heroku {
-    let heroku_api_key = Config::default().heroku_api_key;
-    Heroku::new(heroku_api_key).unwrap()
+fn heroku_client(api_key: &str) -> heroku_rs::client::Heroku {
+    Heroku::new(api_key).unwrap()
 }
+
 
 fn app_response(processed_app_list: Vec<HerokuApp>) -> String {
     let mut list = String::from("Here are your Heroku apps\n");
