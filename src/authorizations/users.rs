@@ -34,7 +34,7 @@ mod tests {
         set_heroku_api_key();
         set_authorized_users();
 
-        let result = authorized_users();
+        let result = authorized_users(&Config::default());
         assert!(
             result.contains(&String::from("123")),
             "Result does not contain the expected name. Result was {:?}",
@@ -50,10 +50,11 @@ mod tests {
 
     #[test]
     fn check_whether_user_is_authorized() {
+        let config = Config::default();
         set_authorized_users();
 
-        assert!(is_authorized("123"));
-        assert!(is_authorized("456"));
-        assert!(!is_authorized("789"));
+        assert!(is_authorized("123", &config));
+        assert!(is_authorized("456", &config));
+        assert!(!is_authorized("789", &config));
     }
 }
