@@ -23,19 +23,14 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
         .apps()
         .execute::<Vec<HerokuApp>>();
 
-    let mut processed_app_list: Vec<HerokuApp> = Vec::new();
-
-    match response {
-        Ok((_headers, _status, json)) => {
-            if let Some(json) = json {
-                processed_app_list = json;
-            }
+    msg.reply(ctx, match response {
+        Ok((_, _, Some(apps))) => app_response(apps),
+        Ok((_, _, None)) => "You have no Heroku apps".into(),
+        Err(err) => {
+            println!("Err {}", err);
+            "An error occured while fetching your Heroku apps".into()
         }
-
-        Err(e) => println!("Err {}", e),
-    }
-
-    msg.reply(ctx, app_response(processed_app_list))?;
+    })?;
 
     Ok(())
 }
