@@ -20,7 +20,7 @@ mod tests {
         Config::new(
             String::from("123"),
             String::from("123,456"),
-            String::from("456")
+            String::from("456"),
         )
     }
 

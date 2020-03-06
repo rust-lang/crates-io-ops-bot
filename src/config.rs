@@ -9,16 +9,17 @@ pub mod config {
     }
 
     impl Config {
-        pub fn new(discord_token: String, 
-                   authorized_users: String,
-                   heroku_api_key: String
-                ) -> Config {
-                    Config {
-                        discord_token: discord_token,
-                        authorized_users: authorized_users,
-                        heroku_api_key: heroku_api_key
-                    }
-                }
+        pub fn new(
+            discord_token: String,
+            authorized_users: String,
+            heroku_api_key: String,
+        ) -> Config {
+            Config {
+                discord_token,
+                authorized_users,
+                heroku_api_key,
+            }
+        }
     }
 
     impl TypeMapKey for Config {

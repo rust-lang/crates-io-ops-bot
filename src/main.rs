@@ -9,7 +9,7 @@ fn main() {
     let config = Config::new(
         dotenv::var("DISCORD_TOKEN").expect("DISCORD_TOKEN must be set"),
         dotenv::var("AUTHORIZED_USERS").expect("AUTHORIZED_USERS must be set"),
-        dotenv::var("HEROKU_API_KEY").expect("HEROKU_API_KEY must be set")
+        dotenv::var("HEROKU_API_KEY").expect("HEROKU_API_KEY must be set"),
     );
 
     crates_io_ops_bot::run(config)
