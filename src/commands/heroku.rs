@@ -16,9 +16,7 @@ struct HerokuApp {
 
 #[command]
 pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
-    let ctx_clone = ctx.clone();
-    let data = ctx_clone.data.read();
-    let config = data.get::<Config>().expect("Expected config");
+    let config = ctx.data.read().get::<Config>().expect("Expected config").clone();
 
     let response = heroku_client(&config.heroku_api_key)
         .get()

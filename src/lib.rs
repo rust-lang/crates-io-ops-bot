@@ -2,6 +2,7 @@ use serenity::client::Client;
 use serenity::framework::standard::{macros::group, StandardFramework};
 use serenity::model::gateway::Ready;
 use serenity::prelude::{Context, EventHandler};
+use std::sync::Arc;
 
 mod commands;
 
@@ -32,7 +33,7 @@ pub fn run(config: Config) {
     // that is passed to each of the commands
     {
         let mut data = client.data.write();
-        data.insert::<Config>(config);
+        data.insert::<Config>(Arc::new(config));
     }
 
     client.with_framework(

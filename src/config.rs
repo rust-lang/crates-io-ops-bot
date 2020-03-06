@@ -1,6 +1,6 @@
-
 use serenity::prelude::TypeMapKey;
 use std::collections::HashSet;
+use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct Config {
@@ -20,7 +20,7 @@ impl Config {
 }
 
 impl TypeMapKey for Config {
-    type Value = Config;
+    type Value = Arc<Config>;
 }
 
 fn authorized_users_set(users: String) -> HashSet<String> {
