@@ -1,4 +1,4 @@
-use crate::config::config::Config;
+use crate::config::Config;
 
 pub fn is_authorized(id: &str, config: &Config) -> bool {
     config.authorized_users.iter().any(|i| i == id)

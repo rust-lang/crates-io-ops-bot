@@ -11,7 +11,7 @@ mod authorizations;
 
 pub mod config;
 
-use crate::config::config::Config;
+use crate::config::Config;
 
 #[group]
 #[commands(ping, multiply, myid, get_apps)]

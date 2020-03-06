@@ -3,7 +3,7 @@
 
 extern crate crates_io_ops_bot;
 extern crate dotenv;
-use crates_io_ops_bot::config::config::Config;
+use crates_io_ops_bot::config::Config;
 
 fn main() {
     let config = Config::new(
