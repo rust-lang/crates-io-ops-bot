@@ -24,12 +24,13 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
         .get()
         .apps()
         .execute::<Vec<HerokuApp>>();
+
     let mut processed_app_list: Vec<HerokuApp> = Vec::new();
 
     match response {
         Ok((_headers, _status, json)) => {
-            if let Some(mut json) = json {
-                processed_app_list.append(&mut json);
+            if let Some(json) = json {
+                processed_app_list = json;
             }
         }
 
