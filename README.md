@@ -63,7 +63,22 @@ you: ~myid
 crates-io-bot: @you: Here is your user id 1234567
 ```
 
-These are obviously contrived commands, there will be commands specific to managing the crates.io infrastructure very soon.
+If you run the ~get_apps command (and you have a Heroku token set in your environmental variables),
+this bot will respond with a list of apps associated with that Heroku account
+```
+you: ~get_apps
+crates-io-bot: @you: Here are your Heroku apps
+App ID: "123abc"
+App Name: "My app 1"
+
+App ID: "456def"
+App Name: "My app 2"
+
+App ID: "789ghi"
+App Name: "My app 3"
+```
+
+There will be more commands specific to managing the crates.io infrastructure very soon.
 
 ## Setup
 
@@ -122,6 +137,20 @@ AUTHORIZED_USERS="123,456"
 ```
 
 To use the authorized user list in a CI/CD or production environment, make sure to set it wherever you define your environmental variables
+for that environment.
+
+### Setting up the Heroku API key
+
+In order to use commands that call out to Heroku, you must set the HEROKU_API_KEY environmental variable.
+
+To use the Heroku API key in development at test environments, set this variable in your .env file
+
+**.env**
+```
+HEROKU_API_KEY="123abc"
+```
+
+To use the Heroku API key in a CI/CD or production environment, make sure to set it wherever you define your environmental variables
 for that environment.
 
 ### Running locally

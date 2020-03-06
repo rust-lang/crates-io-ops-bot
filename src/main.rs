@@ -3,10 +3,14 @@
 
 extern crate crates_io_ops_bot;
 extern crate dotenv;
+use crates_io_ops_bot::config::Config;
 
 fn main() {
-    // Load Discord Token
-    let token = dotenv::var("DISCORD_TOKEN").expect("DISCORD_TOKEN must be set");
+    let config = Config::new(
+        dotenv::var("DISCORD_TOKEN").expect("DISCORD_TOKEN must be set"),
+        dotenv::var("AUTHORIZED_USERS").expect("AUTHORIZED_USERS must be set"),
+        dotenv::var("HEROKU_API_KEY").expect("HEROKU_API_KEY must be set"),
+    );
 
-    crates_io_ops_bot::run(token)
+    crates_io_ops_bot::run(config)
 }
