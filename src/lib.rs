@@ -15,7 +15,7 @@ pub mod config;
 use crate::config::Config;
 
 #[group]
-#[commands(ping, multiply, myid, get_apps)]
+#[commands(ping, multiply, myid, get_app, get_apps)]
 struct General;
 
 struct Handler;
