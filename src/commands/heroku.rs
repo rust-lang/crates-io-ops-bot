@@ -7,6 +7,7 @@ use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
+use crate::authorizations::users::*;
 use crate::config::Config;
 
 #[derive(Debug, Deserialize)]
@@ -30,17 +31,27 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
         .app_name(&app_name)
         .execute::<HerokuApp>();
 
-    msg.reply(
-        ctx,
-        match response {
-            Ok((_, _, Some(app))) => app_response(app),
-            Ok((_, _, None)) => "There is no Heroku app by that name".into(),
-            Err(err) => {
-                println!("Err {}", err);
-                "An error occured while fetching your Heroku app".into()
-            }
-        },
-    )?;
+    if is_authorized(&msg.author.id.to_string(), &*config) {
+        msg.reply(
+            ctx,
+            match response {
+                Ok((_, _, Some(app))) => app_response(app),
+                Ok((_, _, None)) => "There is no Heroku app by that name".into(),
+                Err(err) => {
+                    println!("Err {}", err);
+                    "An error occured while fetching your Heroku app".into()
+                }
+            },
+        )?;
+    } else {
+        msg.reply(
+            ctx,
+            format!(
+                "{}'s Discord ID is not authorized to run this command",
+                msg.author.name
+            ),
+        )?;
+    }
 
     Ok(())
 }
@@ -54,17 +65,27 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
         .apps()
         .execute::<Vec<HerokuApp>>();
 
-    msg.reply(
-        ctx,
-        match response {
-            Ok((_, _, Some(apps))) => apps_response(apps),
-            Ok((_, _, None)) => "You have no Heroku apps".into(),
-            Err(err) => {
-                println!("Err {}", err);
-                "An error occured while fetching your Heroku apps".into()
-            }
-        },
-    )?;
+    if is_authorized(&msg.author.id.to_string(), &*config) {
+        msg.reply(
+            ctx,
+            match response {
+                Ok((_, _, Some(apps))) => apps_response(apps),
+                Ok((_, _, None)) => "You have no Heroku apps".into(),
+                Err(err) => {
+                    println!("Err {}", err);
+                    "An error occured while fetching your Heroku apps".into()
+                }
+            },
+        )?;
+    } else {
+        msg.reply(
+            ctx,
+            format!(
+                "{}'s Discord ID is not authorized to run this command",
+                msg.author.name
+            ),
+        )?;
+    }
 
     Ok(())
 }
@@ -82,17 +103,29 @@ pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandR
         .app_dynos()
         .execute::<Value>();
 
-    msg.reply(
-        ctx,
-        match response {
-            Ok((_, _, Some(_object))) => format!("All dynos in {} have been restarted.", app_name),
-            Ok((_, _, None)) => "There is no Heroku app by that name".into(),
-            Err(err) => {
-                println!("Err {}", err);
-                "An error occured while fetching your Heroku app".into()
-            }
-        },
-    )?;
+    if is_authorized(&msg.author.id.to_string(), &*config) {
+        msg.reply(
+            ctx,
+            match response {
+                Ok((_, _, Some(_object))) => {
+                    format!("All dynos in {} have been restarted.", app_name)
+                }
+                Ok((_, _, None)) => "There is no Heroku app by that name".into(),
+                Err(err) => {
+                    println!("Err {}", err);
+                    "An error occured while fetching your Heroku app".into()
+                }
+            },
+        )?;
+    } else {
+        msg.reply(
+            ctx,
+            format!(
+                "{}'s Discord ID is not authorized to run this command",
+                msg.author.name
+            ),
+        )?;
+    }
 
     Ok(())
 }
@@ -102,7 +135,10 @@ fn heroku_client(api_key: &str) -> heroku_rs::client::Heroku {
 }
 
 fn app_response(app: HerokuApp) -> String {
-    format!("\nApp ID: {}\nApp Name: {}\nReleased At: {}\nWeb URL: {}\n\n", app.id, app.name, app.released_at, app.web_url)
+    format!(
+        "\nApp ID: {}\nApp Name: {}\nReleased At: {}\nWeb URL: {}\n\n",
+        app.id, app.name, app.released_at, app.web_url
+    )
 }
 
 fn apps_response(processed_app_list: Vec<HerokuApp>) -> String {
@@ -123,6 +159,6 @@ fn bot_config(ctx: &Context) -> std::sync::Arc<Config> {
         .get::<Config>()
         .expect("Expected config")
         .clone();
-    
+
     config
 }
