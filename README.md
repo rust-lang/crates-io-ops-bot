@@ -63,19 +63,50 @@ you: ~myid
 crates-io-bot: @you: Here is your user id 1234567
 ```
 
+### Heroku commands
+
+If you run the ~get_app command and pass it either the app name 
+or the app id (and you have a Heroku token set in your environmental variables),
+this bot will respond with information about that app
+
+```
+you: ~get_app your_app_name_or_id
+crates-io-bot:
+App ID: "123abc"
+App Name: "My app 1"
+Released At: 2020-02-12T00:35:44Z
+Web URL: https://www.your_app.herokuapp.com
+```
+
 If you run the ~get_apps command (and you have a Heroku token set in your environmental variables),
 this bot will respond with a list of apps associated with that Heroku account
+
 ```
 you: ~get_apps
 crates-io-bot: @you: Here are your Heroku apps
 App ID: "123abc"
 App Name: "My app 1"
+Released At: 2020-02-12T00:35:44Z
+Web URL: https://www.your_app.herokuapp.com
 
 App ID: "456def"
 App Name: "My app 2"
+Released At: 2020-02-12T00:35:44Z
+Web URL: https://www.your_app.herokuapp.com
 
 App ID: "789ghi"
 App Name: "My app 3"
+Released At: 2020-02-12T00:35:44Z
+Web URL: https://www.your_app.herokuapp.com
+```
+
+If you run the ~restart_app command and pass it either the app name 
+or the app id (and you have a Heroku token set in your environmental variables),
+this bot will send a request to restart all dynos associated with the app
+
+```
+you: ~restart_app your_app_name_or_id
+crates-io-bot: @you: All dynos in your-app-name have been restarted.
 ```
 
 There will be more commands specific to managing the crates.io infrastructure very soon.
