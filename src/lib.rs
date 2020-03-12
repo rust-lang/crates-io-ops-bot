@@ -43,6 +43,7 @@ pub fn run(config: Config) {
             .before(move |ctx, msg, cmd_name| {
                 if !is_authorized(&msg.author.id.to_string(), config.clone()) {
                     println!("User is not authorized to run this command");
+                    msg.reply(ctx, format!("User {} is not authorized to run this command", &msg.author));
                     return false
                 }
                 println!("Running command {}", cmd_name);
