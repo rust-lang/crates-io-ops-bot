@@ -23,7 +23,9 @@ struct HerokuApp {
 pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let config = bot_config(ctx);
 
-    let app_name = args.single::<String>().expect("You must include an app name");
+    let app_name = args
+        .single::<String>()
+        .expect("You must include an app name");
 
     let response = heroku_client(&config.heroku_api_key)
         .get()
@@ -94,7 +96,9 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
 pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let config = bot_config(ctx);
 
-    let app_name = args.single::<String>().expect("You must include an app name");
+    let app_name = args
+        .single::<String>()
+        .expect("You must include an app name");
 
     let response = heroku_client(&config.heroku_api_key)
         .delete_empty()
@@ -153,12 +157,9 @@ fn apps_response(processed_app_list: Vec<HerokuApp>) -> String {
 }
 
 fn bot_config(ctx: &Context) -> std::sync::Arc<Config> {
-    let config = ctx
-        .data
+    ctx.data
         .read()
         .get::<Config>()
         .expect("Expected config")
-        .clone();
-
-    config
+        .clone()
 }
