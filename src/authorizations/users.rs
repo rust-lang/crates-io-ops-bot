@@ -1,6 +1,6 @@
 use crate::config::Config;
 
-pub fn is_authorized(id: &str, config: &Config) -> bool {
+pub fn is_authorized(id: &str, config: Config) -> bool {
     config.authorized_users.contains(id)
 }
 

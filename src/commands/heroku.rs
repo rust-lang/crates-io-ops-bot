@@ -33,27 +33,17 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
         .app_name(&app_name)
         .execute::<HerokuApp>();
 
-    if is_authorized(&msg.author.id.to_string(), &*config) {
-        msg.reply(
-            ctx,
-            match response {
-                Ok((_, _, Some(app))) => app_response(app),
-                Ok((_, _, None)) => "There is no Heroku app by that name".into(),
-                Err(err) => {
-                    println!("Err {}", err);
-                    "An error occured while fetching your Heroku app".into()
-                }
-            },
-        )?;
-    } else {
-        msg.reply(
-            ctx,
-            format!(
-                "{}'s Discord ID is not authorized to run this command",
-                msg.author.name
-            ),
-        )?;
-    }
+    msg.reply(
+        ctx,
+        match response {
+            Ok((_, _, Some(app))) => app_response(app),
+            Ok((_, _, None)) => "There is no Heroku app by that name".into(),
+            Err(err) => {
+                println!("Err {}", err);
+                "An error occured while fetching your Heroku app".into()
+            }
+        },
+    )?;
 
     Ok(())
 }
@@ -67,27 +57,17 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
         .apps()
         .execute::<Vec<HerokuApp>>();
 
-    if is_authorized(&msg.author.id.to_string(), &*config) {
-        msg.reply(
-            ctx,
-            match response {
-                Ok((_, _, Some(apps))) => apps_response(apps),
-                Ok((_, _, None)) => "You have no Heroku apps".into(),
-                Err(err) => {
-                    println!("Err {}", err);
-                    "An error occured while fetching your Heroku apps".into()
-                }
-            },
-        )?;
-    } else {
-        msg.reply(
-            ctx,
-            format!(
-                "{}'s Discord ID is not authorized to run this command",
-                msg.author.name
-            ),
-        )?;
-    }
+    msg.reply(
+        ctx,
+        match response {
+            Ok((_, _, Some(apps))) => apps_response(apps),
+            Ok((_, _, None)) => "You have no Heroku apps".into(),
+            Err(err) => {
+                println!("Err {}", err);
+                "An error occured while fetching your Heroku apps".into()
+            }
+        },
+    )?;
 
     Ok(())
 }
@@ -107,29 +87,17 @@ pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandR
         .app_dynos()
         .execute::<Value>();
 
-    if is_authorized(&msg.author.id.to_string(), &*config) {
-        msg.reply(
-            ctx,
-            match response {
-                Ok((_, _, Some(_object))) => {
-                    format!("All dynos in {} have been restarted.", app_name)
-                }
-                Ok((_, _, None)) => "There is no Heroku app by that name".into(),
-                Err(err) => {
-                    println!("Err {}", err);
-                    "An error occured while fetching your Heroku app".into()
-                }
-            },
-        )?;
-    } else {
-        msg.reply(
-            ctx,
-            format!(
-                "{}'s Discord ID is not authorized to run this command",
-                msg.author.name
-            ),
-        )?;
-    }
+    msg.reply(
+        ctx,
+        match response {
+            Ok((_, _, Some(_object))) => format!("All dynos in {} have been restarted.", app_name),
+            Ok((_, _, None)) => "There is no Heroku app by that name".into(),
+            Err(err) => {
+                println!("Err {}", err);
+                "An error occured while fetching your Heroku app".into()
+            }
+        },
+    )?;
 
     Ok(())
 }

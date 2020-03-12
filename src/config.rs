@@ -2,7 +2,7 @@ use serenity::prelude::TypeMapKey;
 use std::collections::HashSet;
 use std::sync::Arc;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Config {
     pub discord_token: String,
     pub authorized_users: HashSet<String>,
