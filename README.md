@@ -41,6 +41,17 @@ This Discord bot allows you to run commands in a Discord channel like this:
 ~command
 ```
 
+### Configuring Commands
+
+By default, all commands are locked down and only can be run by users with ids
+in the AUTHORIZED_USERS environmental variable. 
+
+If you would like a command to be runnable by anyone (not just those
+defined in AUTHORIZED USERS), you need to add it to the NO_AUTH_COMMANDS 
+environmental variable.
+
+### General Commands
+
 For example, if you run the ~ping command is a Discord channel, this bot will respond with "Pong!"
 
 ```
