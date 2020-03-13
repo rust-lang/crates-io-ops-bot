@@ -7,14 +7,21 @@ pub struct Config {
     pub discord_token: String,
     pub authorized_users: HashSet<String>,
     pub heroku_api_key: String,
+    pub no_auth_commands: String,
 }
 
 impl Config {
-    pub fn new(discord_token: String, authorized_users: String, heroku_api_key: String) -> Config {
+    pub fn new(
+        discord_token: String,
+        authorized_users: String,
+        heroku_api_key: String,
+        no_auth_commands: String,
+    ) -> Config {
         Config {
             discord_token,
             authorized_users: authorized_users_set(authorized_users),
             heroku_api_key,
+            no_auth_commands,
         }
     }
 }

@@ -42,11 +42,16 @@ pub fn run(config: Config) {
         StandardFramework::new()
             .before(move |ctx, msg, cmd_name| {
                 if !is_authorized(&msg.author.id.to_string(), config.clone()) {
+                    if config.no_auth_commands.contains(cmd_name) {
+                        return true;
+                    }
+
                     println!("User is not authorized to run this command");
                     msg.reply(
                         ctx,
                         format!("User {} is not authorized to run this command", &msg.author),
-                    ).ok();
+                    )
+                    .ok();
 
                     return false;
                 }
