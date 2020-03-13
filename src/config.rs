@@ -7,21 +7,14 @@ pub struct Config {
     pub discord_token: String,
     pub authorized_users: HashSet<String>,
     pub heroku_api_key: String,
-    pub no_auth_commands: HashSet<String>,
 }
 
 impl Config {
-    pub fn new(
-        discord_token: String,
-        authorized_users: String,
-        heroku_api_key: String,
-        no_auth_commands: String,
-    ) -> Config {
+    pub fn new(discord_token: String, authorized_users: String, heroku_api_key: String) -> Config {
         Config {
             discord_token,
             authorized_users: parse_config_value_set(authorized_users),
             heroku_api_key,
-            no_auth_commands: parse_config_value_set(no_auth_commands),
         }
     }
 }
@@ -54,14 +47,5 @@ mod tests {
         assert!(users_set.contains("123"));
         assert!(users_set.contains("456"));
         assert!(users_set.contains("789"));
-    }
-
-    #[test]
-    fn create_no_auth_commands_hashset() {
-        let test_string = String::from("ping,multiply");
-        let commands_set = parse_config_value_set(test_string);
-
-        assert!(commands_set.contains("ping"));
-        assert!(commands_set.contains("multiply"));
     }
 }

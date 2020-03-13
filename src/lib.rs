@@ -28,6 +28,10 @@ impl EventHandler for Handler {
     }
 }
 
+// These commands do not require a user
+// to be in the AUTHORIZED_USERS env variable
+const NO_AUTH_COMMANDS: &'static [&'static str] = &["ping", "multiply"];
+
 pub fn run(config: Config) {
     let mut client = Client::new(&config.discord_token, Handler).expect("Err creating client");
 
@@ -42,7 +46,7 @@ pub fn run(config: Config) {
         StandardFramework::new()
             .before(move |ctx, msg, cmd_name| {
                 if !is_authorized(&msg.author.id.to_string(), config.clone()) {
-                    if config.no_auth_commands.contains(cmd_name) {
+                    if NO_AUTH_COMMANDS.contains(&cmd_name) {
                         return true;
                     }
 
