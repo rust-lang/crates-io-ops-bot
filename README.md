@@ -47,8 +47,14 @@ By default, all commands are locked down and only can be run by users with ids
 in the AUTHORIZED_USERS environmental variable. 
 
 If you would like a command to be runnable by anyone (not just those
-defined in AUTHORIZED USERS), you need to add it to the NO_AUTH_COMMANDS 
-environmental variable.
+defined in AUTHORIZED USERS), you need to add it to the NO_AUTH_COMMANDS constant.
+
+**lib.rs**
+```rust
+// These commands do not require a user
+// to be in the AUTHORIZED_USERS env variable
+const NO_AUTH_COMMANDS: &'static [&'static str] = &["ping", "multiply"];
+```
 
 ### General Commands
 
