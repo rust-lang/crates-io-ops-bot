@@ -53,7 +53,7 @@ defined in AUTHORIZED USERS), you need to add it to the NO_AUTH_COMMANDS constan
 ```rust
 // These commands do not require a user
 // to be in the AUTHORIZED_USERS env variable
-const NO_AUTH_COMMANDS: &'static [&'static str] = &["ping", "multiply"];
+const NO_AUTH_COMMANDS: &[&str] = &["ping", "multiply", "myid"]
 ```
 
 ### General Commands

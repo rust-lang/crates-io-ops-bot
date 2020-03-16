@@ -31,7 +31,7 @@ impl EventHandler for Handler {
 
 // These commands do not require a user
 // to be in the AUTHORIZED_USERS env variable
-const NO_AUTH_COMMANDS: &'static [&'static str] = &["ping", "multiply", "myid"];
+const NO_AUTH_COMMANDS: &[&str] = &["ping", "multiply", "myid"];
 
 pub fn run(config: Config) {
     let mut client = Client::new(&config.discord_token, Handler).expect("Err creating client");
