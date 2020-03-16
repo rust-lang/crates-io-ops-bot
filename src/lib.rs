@@ -1,4 +1,5 @@
 use serenity::client::Client;
+use serenity::framework::standard::DispatchError::{NotEnoughArguments, TooManyArguments};
 use serenity::framework::standard::{macros::group, StandardFramework};
 use serenity::model::gateway::Ready;
 use serenity::prelude::{Context, EventHandler};
@@ -30,7 +31,7 @@ impl EventHandler for Handler {
 
 // These commands do not require a user
 // to be in the AUTHORIZED_USERS env variable
-const NO_AUTH_COMMANDS: &'static [&'static str] = &["ping", "multiply"];
+const NO_AUTH_COMMANDS: &'static [&'static str] = &["ping", "multiply", "myid"];
 
 pub fn run(config: Config) {
     let mut client = Client::new(&config.discord_token, Handler).expect("Err creating client");
@@ -61,6 +62,19 @@ pub fn run(config: Config) {
                 }
                 println!("Running command {}", cmd_name);
                 true
+            })
+            .on_dispatch_error(|context, msg, error| match error {
+                NotEnoughArguments { min, given } => {
+                    let s = format!("Need {} arguments, but only got {}.", min, given);
+
+                    let _ = msg.channel_id.say(&context.http, &s);
+                }
+                TooManyArguments { max, given } => {
+                    let s = format!("Max arguments allowed is {}, but got {}.", max, given);
+
+                    let _ = msg.channel_id.say(&context.http, &s);
+                }
+                _ => println!("Unhandled dispatch error."),
             })
             .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
             .group(&GENERAL_GROUP),
