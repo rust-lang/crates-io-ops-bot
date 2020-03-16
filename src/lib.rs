@@ -46,7 +46,7 @@ pub fn run(config: Config) {
     client.with_framework(
         StandardFramework::new()
             .before(move |ctx, msg, cmd_name| {
-                if !is_authorized(&msg.author.id.to_string(), config.clone()) {
+                if !is_authorized(&msg.author.id.to_string(), &config) {
                     if NO_AUTH_COMMANDS.contains(&cmd_name) {
                         return true;
                     }

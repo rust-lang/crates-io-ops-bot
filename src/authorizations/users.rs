@@ -1,6 +1,6 @@
 use crate::config::Config;
 
-pub fn is_authorized(id: &str, config: Config) -> bool {
+pub fn is_authorized(id: &str, config: &Config) -> bool {
     config.authorized_users.contains(id)
 }
 
@@ -20,8 +20,8 @@ mod tests {
     fn check_whether_user_is_authorized() {
         let config = test_config();
 
-        assert!(is_authorized("123", config.clone()));
-        assert!(is_authorized("456", config.clone()));
-        assert!(!is_authorized("789", config.clone()));
+        assert!(is_authorized("123", &config.clone()));
+        assert!(is_authorized("456", &config.clone()));
+        assert!(!is_authorized("789", &config.clone()));
     }
 }
