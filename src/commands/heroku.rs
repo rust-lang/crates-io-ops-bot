@@ -19,6 +19,7 @@ struct HerokuApp {
 
 // Get app by name or id
 #[command]
+#[num_args(1)]
 pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let config = bot_config(ctx);
 
@@ -72,6 +73,7 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
 }
 
 #[command]
+#[num_args(1)]
 pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let config = bot_config(ctx);
 

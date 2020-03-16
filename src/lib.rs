@@ -74,7 +74,9 @@ pub fn run(config: Config) {
 
                     let _ = msg.channel_id.say(&context.http, &s);
                 }
-                _ => println!("Unhandled dispatch error."),
+                _ => {
+                    println!("Unhandled dispatch error {:?}", error);
+                }
             })
             .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
             .group(&GENERAL_GROUP),
