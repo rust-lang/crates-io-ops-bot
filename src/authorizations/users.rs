@@ -12,7 +12,7 @@ mod tests {
         Config::new(
             String::from("123"),
             String::from("123,456"),
-            String::from("456"),
+            String::from("456abc"),
         )
     }
 
@@ -20,8 +20,8 @@ mod tests {
     fn check_whether_user_is_authorized() {
         let config = test_config();
 
-        assert!(is_authorized("123", &config));
-        assert!(is_authorized("456", &config));
-        assert!(!is_authorized("789", &config));
+        assert!(is_authorized("123", &config.clone()));
+        assert!(is_authorized("456", &config.clone()));
+        assert!(!is_authorized("789", &config.clone()));
     }
 }
