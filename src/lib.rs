@@ -1,9 +1,10 @@
+use heroku_rs::framework::{auth::Credentials, ApiEnvironment, HttpApiClient, HttpApiClientConfig};
+
 use serenity::client::Client;
 use serenity::framework::standard::DispatchError::{NotEnoughArguments, TooManyArguments};
 use serenity::framework::standard::{macros::group, StandardFramework};
 use serenity::model::gateway::Ready;
-use serenity::prelude::{Context, EventHandler};
-use std::sync::Arc;
+use serenity::prelude::{Context, EventHandler, TypeMapKey};
 
 mod commands;
 
@@ -29,6 +30,20 @@ impl EventHandler for Handler {
     }
 }
 
+struct HerokuClient {
+    client: heroku_rs::framework::HttpApiClient,
+}
+
+impl HerokuClient {
+    pub fn new(client: heroku_rs::framework::HttpApiClient) -> HerokuClient {
+        HerokuClient { client: client }
+    }
+}
+
+impl TypeMapKey for HerokuClient {
+    type Value = HerokuClient;
+}
+
 // These commands do not require a user
 // to be in the AUTHORIZED_USERS env variable
 const NO_AUTH_COMMANDS: &[&str] = &["ping", "multiply", "myid"];
@@ -36,11 +51,11 @@ const NO_AUTH_COMMANDS: &[&str] = &["ping", "multiply", "myid"];
 pub fn run(config: Config) {
     let mut client = Client::new(&config.discord_token, Handler).expect("Err creating client");
 
-    // Insert default config into data
-    // that is passed to each of the commands
+    let heroku_client_instance = HerokuClient::new(initial_heroku_client(&config.heroku_api_key));
+
     {
         let mut data = client.data.write();
-        data.insert::<Config>(Arc::new(config.clone()));
+        data.insert::<HerokuClient>(heroku_client_instance);
     }
 
     client.with_framework(
@@ -85,4 +100,19 @@ pub fn run(config: Config) {
     if let Err(why) = client.start() {
         println!("Client error: {:?}", why);
     }
+}
+
+fn heroku_credentials(api_key: &str) -> heroku_rs::framework::auth::Credentials {
+    Credentials::UserAuthToken {
+        token: api_key.to_string(),
+    }
+}
+
+fn initial_heroku_client(api_key: &str) -> heroku_rs::framework::HttpApiClient {
+    HttpApiClient::new(
+        heroku_credentials(api_key),
+        HttpApiClientConfig::default(),
+        ApiEnvironment::Production,
+    )
+    .unwrap()
 }
