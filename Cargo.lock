@@ -272,7 +272,6 @@ name = "crates-io-ops-bot"
 version = "0.1.0"
 dependencies = [
  "dotenv",
- "failure",
  "heroku_rs",
  "serde",
  "serde_json",
