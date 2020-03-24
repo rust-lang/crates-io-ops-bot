@@ -57,8 +57,7 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
 
     let heroku_client = data
         .get::<HerokuClient>()
-        .expect("Expected Heroku client")
-        .clone();
+        .expect("Expected Heroku client");
 
     let response = heroku_client.client.request(&apps::AppList {});
 
@@ -88,8 +87,7 @@ pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandR
 
     let heroku_client = data
         .get::<HerokuClient>()
-        .expect("Expected Heroku client")
-        .clone();
+        .expect("Expected Heroku client");
 
     let response = heroku_client.client.request(&dynos::DynoAllRestart {
         app_id: app_name.clone(),
