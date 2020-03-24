@@ -30,8 +30,7 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
 
     let heroku_client = data
         .get::<HerokuClient>()
-        .expect("Expected Heroku client")
-        .clone();
+        .expect("Expected Heroku client");
 
     let response = heroku_client
         .client
