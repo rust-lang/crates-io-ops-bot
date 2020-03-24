@@ -1,13 +1,13 @@
 use heroku_rs::endpoints::{apps, dynos};
 use heroku_rs::framework::apiclient::HerokuApiClient;
+use crate::HerokuClientKey;
+
 
 use serde::Deserialize;
 
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
-
-use crate::HerokuClient;
 
 #[derive(Debug, Deserialize)]
 struct HerokuApp {
@@ -29,11 +29,10 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
     let data = ctx_clone.data.read();
 
     let heroku_client = data
-        .get::<HerokuClient>()
+        .get::<HerokuClientKey>()
         .expect("Expected Heroku client");
 
     let response = heroku_client
-        .client
         .request(&apps::AppDetails { app_id: app_name });
 
     msg.reply(
@@ -56,10 +55,10 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
     let data = ctx_clone.data.read();
 
     let heroku_client = data
-        .get::<HerokuClient>()
+        .get::<HerokuClientKey>()
         .expect("Expected Heroku client");
 
-    let response = heroku_client.client.request(&apps::AppList {});
+    let response = heroku_client.request(&apps::AppList {});
 
     msg.reply(
         ctx,
@@ -86,13 +85,12 @@ pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandR
     let data = ctx_clone.data.read();
 
     let heroku_client = data
-        .get::<HerokuClient>()
+        .get::<HerokuClientKey>()
         .expect("Expected Heroku client");
 
-    let response = heroku_client.client.request(&dynos::DynoAllRestart {
+    let response = heroku_client.request(&dynos::DynoAllRestart {
         app_id: app_name.clone(),
     });
-    println!("response: {:?}", response);
 
     msg.reply(
         ctx,

@@ -30,18 +30,10 @@ impl EventHandler for Handler {
     }
 }
 
-struct HerokuClient {
-    client: heroku_rs::framework::HttpApiClient,
-}
+struct HerokuClientKey;
 
-impl HerokuClient {
-    pub fn new(client: heroku_rs::framework::HttpApiClient) -> HerokuClient {
-        HerokuClient { client: client }
-    }
-}
-
-impl TypeMapKey for HerokuClient {
-    type Value = HerokuClient;
+impl TypeMapKey for HerokuClientKey {
+    type Value = heroku_rs::framework::HttpApiClient;
 }
 
 // These commands do not require a user
@@ -51,11 +43,11 @@ const NO_AUTH_COMMANDS: &[&str] = &["ping", "multiply", "myid"];
 pub fn run(config: Config) {
     let mut client = Client::new(&config.discord_token, Handler).expect("Err creating client");
 
-    let heroku_client_instance = HerokuClient::new(initial_heroku_client(&config.heroku_api_key));
+    let heroku_client_instance = initial_heroku_client(&config.heroku_api_key);
 
     {
         let mut data = client.data.write();
-        data.insert::<HerokuClient>(heroku_client_instance);
+        data.insert::<HerokuClientKey>(heroku_client_instance);
     }
 
     client.with_framework(
