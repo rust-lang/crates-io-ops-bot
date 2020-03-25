@@ -111,7 +111,7 @@ fn app_response(app: heroku_rs::endpoints::apps::App) -> String {
         "\nApp ID: {}\nApp Name: {}\nReleased At: {}\nWeb URL: {}\n\n",
         app.id,
         app.name,
-        app.released_at.unwrap(),
+        app.released_at.unwrap_or("never".to_string()),
         app.web_url
     )
 }
