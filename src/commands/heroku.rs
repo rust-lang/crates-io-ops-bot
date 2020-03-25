@@ -25,14 +25,7 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
         .single::<String>()
         .expect("You must include an app name");
 
-    let ctx_clone = ctx.clone();
-    let data = ctx_clone.data.read();
-
-    let heroku_client = data
-        .get::<HerokuClientKey>()
-        .expect("Expected Heroku client");
-
-    let response = heroku_client
+    let response = heroku_client(ctx)
         .request(&apps::AppDetails { app_id: app_name });
 
     msg.reply(
@@ -51,14 +44,7 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
 
 #[command]
 pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
-    let ctx_clone = ctx.clone();
-    let data = ctx_clone.data.read();
-
-    let heroku_client = data
-        .get::<HerokuClientKey>()
-        .expect("Expected Heroku client");
-
-    let response = heroku_client.request(&apps::AppList {});
+    let response = heroku_client(ctx).request(&apps::AppList {});
 
     msg.reply(
         ctx,
@@ -81,14 +67,7 @@ pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandR
         .single::<String>()
         .expect("You must include an app name");
 
-    let ctx_clone = ctx.clone();
-    let data = ctx_clone.data.read();
-
-    let heroku_client = data
-        .get::<HerokuClientKey>()
-        .expect("Expected Heroku client");
-
-    let response = heroku_client.request(&dynos::DynoAllRestart {
+    let response = heroku_client(ctx).request(&dynos::DynoAllRestart {
         app_id: app_name.clone(),
     });
 
@@ -125,4 +104,12 @@ fn apps_response(processed_app_list: Vec<heroku_rs::endpoints::apps::App>) -> St
     }
 
     list
+}
+
+fn heroku_client(ctx: &Context) -> std::sync::Arc<heroku_rs::framework::HttpApiClient> {
+    ctx.data.
+        read()
+        .get::<HerokuClientKey>()
+        .expect("Expected Heroku Client Key")
+        .clone()
 }

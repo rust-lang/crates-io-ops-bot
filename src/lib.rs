@@ -5,6 +5,7 @@ use serenity::framework::standard::DispatchError::{NotEnoughArguments, TooManyAr
 use serenity::framework::standard::{macros::group, StandardFramework};
 use serenity::model::gateway::Ready;
 use serenity::prelude::{Context, EventHandler, TypeMapKey};
+use std::sync::Arc;
 
 mod commands;
 
@@ -33,7 +34,7 @@ impl EventHandler for Handler {
 struct HerokuClientKey;
 
 impl TypeMapKey for HerokuClientKey {
-    type Value = heroku_rs::framework::HttpApiClient;
+    type Value = Arc<heroku_rs::framework::HttpApiClient>;
 }
 
 // These commands do not require a user
@@ -47,7 +48,7 @@ pub fn run(config: Config) {
 
     {
         let mut data = client.data.write();
-        data.insert::<HerokuClientKey>(heroku_client_instance);
+        data.insert::<HerokuClientKey>(Arc::new(heroku_client_instance));
     }
 
     client.with_framework(
