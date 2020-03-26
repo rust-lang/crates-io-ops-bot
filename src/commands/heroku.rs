@@ -1,13 +1,12 @@
-use heroku_rs::client::{Executor, Heroku};
+use crate::HerokuClientKey;
+use heroku_rs::endpoints::{apps, dynos};
+use heroku_rs::framework::apiclient::HerokuApiClient;
 
 use serde::Deserialize;
-use serde_json::Value;
 
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
-
-use crate::config::Config;
 
 #[derive(Debug, Deserialize)]
 struct HerokuApp {
@@ -21,26 +20,19 @@ struct HerokuApp {
 #[command]
 #[num_args(1)]
 pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    let config = bot_config(ctx);
-
     let app_name = args
         .single::<String>()
         .expect("You must include an app name");
 
-    let response = heroku_client(&config.heroku_api_key)
-        .get()
-        .apps()
-        .app_name(&app_name)
-        .execute::<HerokuApp>();
+    let response = heroku_client(ctx).request(&apps::AppDetails { app_id: app_name });
 
     msg.reply(
         ctx,
         match response {
-            Ok((_, _, Some(app))) => app_response(app),
-            Ok((_, _, None)) => "There is no Heroku app by that name".into(),
-            Err(err) => {
-                println!("Err {}", err);
-                "An error occured while fetching your Heroku app".into()
+            Ok(app) => app_response(app),
+            Err(e) => {
+                println!("Error: {}", e);
+                "An error occured when fetching your Heroku app".into()
             }
         },
     )?;
@@ -50,21 +42,15 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
 
 #[command]
 pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
-    let config = bot_config(ctx);
-
-    let response = heroku_client(&config.heroku_api_key)
-        .get()
-        .apps()
-        .execute::<Vec<HerokuApp>>();
+    let response = heroku_client(ctx).request(&apps::AppList {});
 
     msg.reply(
         ctx,
         match response {
-            Ok((_, _, Some(apps))) => apps_response(apps),
-            Ok((_, _, None)) => "You have no Heroku apps".into(),
-            Err(err) => {
-                println!("Err {}", err);
-                "An error occured while fetching your Heroku apps".into()
+            Ok(apps) => apps_response(apps),
+            Err(e) => {
+                println!("Error: {}", e);
+                "An error occured when fetching your Heroku apps".into()
             }
         },
     )?;
@@ -75,27 +61,21 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
 #[command]
 #[num_args(1)]
 pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    let config = bot_config(ctx);
-
     let app_name = args
         .single::<String>()
         .expect("You must include an app name");
 
-    let response = heroku_client(&config.heroku_api_key)
-        .delete_empty()
-        .apps()
-        .app_name(&app_name)
-        .app_dynos()
-        .execute::<Value>();
+    let response = heroku_client(ctx).request(&dynos::DynoAllRestart {
+        app_id: app_name.clone(),
+    });
 
     msg.reply(
         ctx,
         match response {
-            Ok((_, _, Some(_object))) => format!("All dynos in {} have been restarted.", app_name),
-            Ok((_, _, None)) => "There is no Heroku app by that name".into(),
-            Err(err) => {
-                println!("Err {}", err);
-                "An error occured while fetching your Heroku app".into()
+            Ok(_response) => format!("All dynos in {} have been restarted.", app_name),
+            Err(e) => {
+                println!("Error: {}", e);
+                "An error occured when trying to restart your Heroku app".into()
             }
         },
     )?;
@@ -103,18 +83,17 @@ pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandR
     Ok(())
 }
 
-fn heroku_client(api_key: &str) -> heroku_rs::client::Heroku {
-    Heroku::new(api_key).unwrap()
-}
-
-fn app_response(app: HerokuApp) -> String {
+fn app_response(app: heroku_rs::endpoints::apps::App) -> String {
     format!(
         "\nApp ID: {}\nApp Name: {}\nReleased At: {}\nWeb URL: {}\n\n",
-        app.id, app.name, app.released_at, app.web_url
+        app.id,
+        app.name,
+        app.released_at.unwrap_or("never".to_string()),
+        app.web_url
     )
 }
 
-fn apps_response(processed_app_list: Vec<HerokuApp>) -> String {
+fn apps_response(processed_app_list: Vec<heroku_rs::endpoints::apps::App>) -> String {
     let mut list = String::from("Here are your Heroku apps\n");
 
     for app in processed_app_list {
@@ -125,10 +104,10 @@ fn apps_response(processed_app_list: Vec<HerokuApp>) -> String {
     list
 }
 
-fn bot_config(ctx: &Context) -> std::sync::Arc<Config> {
+fn heroku_client(ctx: &Context) -> std::sync::Arc<heroku_rs::framework::HttpApiClient> {
     ctx.data
         .read()
-        .get::<Config>()
-        .expect("Expected config")
+        .get::<HerokuClientKey>()
+        .expect("Expected Heroku Client Key")
         .clone()
 }
