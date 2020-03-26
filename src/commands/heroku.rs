@@ -1,7 +1,6 @@
+use crate::HerokuClientKey;
 use heroku_rs::endpoints::{apps, dynos};
 use heroku_rs::framework::apiclient::HerokuApiClient;
-use crate::HerokuClientKey;
-
 
 use serde::Deserialize;
 
@@ -25,8 +24,7 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
         .single::<String>()
         .expect("You must include an app name");
 
-    let response = heroku_client(ctx)
-        .request(&apps::AppDetails { app_id: app_name });
+    let response = heroku_client(ctx).request(&apps::AppDetails { app_id: app_name });
 
     msg.reply(
         ctx,
@@ -107,8 +105,8 @@ fn apps_response(processed_app_list: Vec<heroku_rs::endpoints::apps::App>) -> St
 }
 
 fn heroku_client(ctx: &Context) -> std::sync::Arc<heroku_rs::framework::HttpApiClient> {
-    ctx.data.
-        read()
+    ctx.data
+        .read()
         .get::<HerokuClientKey>()
         .expect("Expected Heroku Client Key")
         .clone()
