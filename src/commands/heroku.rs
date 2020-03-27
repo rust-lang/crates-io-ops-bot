@@ -63,7 +63,6 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
 #[command]
 #[num_args(4)]
 pub fn scale_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
-    println!("============");
     let app_name = args
         .single::<String>()
         .expect("You must include an app name");
@@ -160,8 +159,8 @@ fn app_info_response(app: heroku_rs::endpoints::apps::App) -> String {
 
 fn app_formation_response(formation: heroku_rs::endpoints::formations::Formation) -> String {
     format!(
-        "\nName: {}\nCommand: {}\nQuantity: {}\n\n",
-        formation.r#type, formation.command, formation.quantity,
+        "\nName: {}\nCommand: {}\nQuantity: {}\nSize: {}\n\n",
+        formation.r#type, formation.command, formation.quantity, formation.size,
     )
 }
 

@@ -101,6 +101,7 @@ Formations for this app:
 Name: web
 Command: npm start
 Quantity: 1
+Size: Free
 ```
 
 **~get_apps**
@@ -155,16 +156,29 @@ crates-io-bot: : App testing-nell-bot's formation web has been updated
 Name: web
 Command: npm start
 Quantity: 3
+Size: standard-1X
 ```
 
-If you want to scale down the formation to have a total of 1 dyno in it, you would run this command:
+If you want to scale down the formation to have a total of 2 dynos in it, you would run this command:
 
 ```
-~scale_app testing-nell-bot web 1 standard-1X
+~scale_app testing-nell-bot web 2 standard-1X
 crates-io-bot: : App testing-nell-bot's formation web has been updated
 Name: web
 Command: npm start
-Quantity: 1
+Quantity: 2
+Size: standard-1X
+```
+
+If you want to change the size of all dynos in a formation (for example, upgrading all dynos from "standard-1X" to "standard-2X"), you would run this command:
+
+```
+~scale_app testing-nell-bot web 2 standard-2X
+crates-io-bot: : App testing-nell-bot's formation web has been updated
+Name: web
+Command: npm start
+Quantity: 2
+Size: standard-2X
 ```
 
 ## Setup

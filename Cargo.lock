@@ -550,7 +550,7 @@ dependencies = [
 [[package]]
 name = "heroku_rs"
 version = "0.3.1"
-source = "git+https://github.com/bensadiku/heroku_rs#c4292c8e90f60af5a8342131a827a2e239f9b3b9"
+source = "git+https://github.com/bensadiku/heroku_rs#a422709555bbff204c2ba51e8ce8d4ea0206b423"
 dependencies = [
  "async-trait",
  "chrono",
