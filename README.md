@@ -82,6 +82,8 @@ crates-io-bot: @you: Here is your user id 1234567
 
 ### Heroku commands
 
+**~get_app**
+
 If you run the ~get_app command and pass it either the app name 
 or the app id (and you have a Heroku token set in your environmental variables),
 this bot will respond with information about that app
@@ -93,7 +95,15 @@ App ID: "123abc"
 App Name: "My app 1"
 Released At: 2020-02-12T00:35:44Z
 Web URL: https://www.your_app.herokuapp.com
+
+Formations for this app:
+
+Name: web
+Command: npm start
+Quantity: 1
 ```
+
+**~get_apps**
 
 If you run the ~get_apps command (and you have a Heroku token set in your environmental variables),
 this bot will respond with a list of apps associated with that Heroku account
@@ -117,6 +127,8 @@ Released At: 2020-02-12T00:35:44Z
 Web URL: https://www.your_app.herokuapp.com
 ```
 
+**~restart_app**
+
 If you run the ~restart_app command and pass it either the app name 
 or the app id (and you have a Heroku token set in your environmental variables),
 this bot will send a request to restart all dynos associated with the app
@@ -126,7 +138,34 @@ you: ~restart_app your_app_name_or_id
 crates-io-bot: @you: All dynos in your-app-name have been restarted.
 ```
 
-There will be more commands specific to managing the crates.io infrastructure very soon.
+**~scale_app**
+
+You can scale formations of dynos within your application through the ~scale_app command.
+
+For example: Let's say you have an application ("testing-nell-bot") that is running
+* 1 formation - called "web"
+* with 2 dynos in that formation
+* each dyno is size "standard-1X"
+
+If you want to update the formation to have a total of 3 dynos in it, you would run this command:
+
+```
+~scale_app testing-nell-bot web 3 standard-1X
+crates-io-bot: : App testing-nell-bot's formation web has been updated
+Name: web
+Command: npm start
+Quantity: 3
+```
+
+If you want to scale down the formation to have a total of 1 dyno in it, you would run this command:
+
+```
+~scale_app testing-nell-bot web 1 standard-1X
+crates-io-bot: : App testing-nell-bot's formation web has been updated
+Name: web
+Command: npm start
+Quantity: 1
+```
 
 ## Setup
 

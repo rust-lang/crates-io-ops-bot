@@ -85,15 +85,10 @@ pub fn scale_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRes
         },
     });
 
-    println!("response: {:?}", response);
-
     msg.reply(
         ctx,
         match response {
-            Ok(_formation) => format!(
-                "App {}, formation {} has been successfully scaled.",
-                app_name, formation_name
-            ),
+            Ok(formation) => formation_updated_response(app_name, formation),
             Err(e) => {
                 format!(
                     "An error occured when trying to scale your app formation:\n{}",
@@ -181,6 +176,13 @@ fn app_formations_response(
     }
 
     list
+}
+
+fn formation_updated_response(app_name: String, formation: heroku_rs::endpoints::formations::Formation) -> String {
+    let mut response = format!("App {}'s formation {} has been updated", app_name, formation.r#type);
+
+    response.push_str(&app_formation_response(formation));
+    response
 }
 
 fn apps_response(processed_app_list: Vec<heroku_rs::endpoints::apps::App>) -> String {
