@@ -24,32 +24,83 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
         .single::<String>()
         .expect("You must include an app name");
 
-    let app_resp = heroku_client(ctx)
-        .request(&apps::AppDetails { app_id: app_name.clone() });
-
-    let app_formations_resp = heroku_client(ctx)
-        .request(&formations::FormationList { app_id: app_name });
+    let app_resp = heroku_client(ctx).request(&apps::AppDetails {
+        app_id: app_name.clone(),
+    });
 
     msg.reply(
         ctx.clone(),
         match app_resp {
             Ok(app) => app_info_response(app),
             Err(e) => {
-                println!("Error: {}", e);
-                "An error occured when fetching your Heroku app".into()
+                format!(
+                    "An error occurred when fetching your Heroku app:\n{}",
+                    e
+                )
             }
         },
     )?;
+
+    let app_formations_resp =
+        heroku_client(ctx).request(&formations::FormationList { app_id: app_name });
 
     msg.reply(
         ctx,
         match app_formations_resp {
             Ok(formations) => app_formations_response(formations),
             Err(e) => {
-                println!("Error: {}", e);
-                "An error occured when fetching your Heroku app formation info".into()
+                format!(
+                    "An error occured when fetching your Heroku app formation info:\n{}",
+                    e
+                )
             }
-        }
+        },
+    )?;
+
+    Ok(())
+}
+
+#[command]
+#[num_args(4)]
+pub fn scale_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    println!("============");
+    let app_name = args
+        .single::<String>()
+        .expect("You must include an app name");
+
+    let formation_name = args
+        .single::<String>()
+        .expect("You must include a formation name");
+
+    let quantity = args.single::<i32>().expect("You must include a quantity");
+
+    let size = args.single::<String>().expect("You must include a size");
+
+    let response = heroku_client(ctx).request(&formations::FormationUpdate {
+        app_id: app_name.clone(),
+        formation_id: formation_name.clone(),
+        params: formations::FormationUpdateParams {
+            quantity: Some(quantity),
+            size: Some(size),
+        },
+    });
+
+    println!("response: {:?}", response);
+
+    msg.reply(
+        ctx,
+        match response {
+            Ok(_formation) => format!(
+                "App {}, formation {} has been successfully scaled.",
+                app_name, formation_name
+            ),
+            Err(e) => {
+                format!(
+                    "An error occured when trying to scale your app formation:\n{}",
+                    e
+                )
+            }
+        },
     )?;
 
     Ok(())
@@ -64,8 +115,10 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
         match response {
             Ok(apps) => apps_response(apps),
             Err(e) => {
-                println!("Error: {}", e);
-                "An error occured when fetching your Heroku apps".into()
+                format!(
+                    "An error occured when fetching your Heroku apps:\n{}",
+                    e
+                )
             }
         },
     )?;
@@ -89,8 +142,10 @@ pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandR
         match response {
             Ok(_response) => format!("All dynos in {} have been restarted.", app_name),
             Err(e) => {
-                println!("Error: {}", e);
-                "An error occured when trying to restart your Heroku app".into()
+                format!(
+                    "An error occured when trying to restart your Heroku app:\n{}",
+                    e
+                )
             }
         },
     )?;
@@ -110,15 +165,15 @@ fn app_info_response(app: heroku_rs::endpoints::apps::App) -> String {
 
 fn app_formation_response(formation: heroku_rs::endpoints::formations::Formation) -> String {
     format!(
-        "\nCommand: {}\nQuantity: {}\nType: {}\n\n", 
-        formation.command, 
-        formation.quantity, 
-        formation.r#type
-    ) 
+        "\nName: {}\nCommand: {}\nQuantity: {}\n\n",
+        formation.r#type, formation.command, formation.quantity,
+    )
 }
 
-fn app_formations_response(formations_list: Vec<heroku_rs::endpoints::formations::Formation>) -> String {
-    let mut list = String::from("Here are are the formations for that app:\n");
+fn app_formations_response(
+    formations_list: Vec<heroku_rs::endpoints::formations::Formation>,
+) -> String {
+    let mut list = String::from("\nFormations for this app:\n");
 
     for formation in formations_list {
         let formation_info = app_formation_response(formation);

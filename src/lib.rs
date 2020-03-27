@@ -20,7 +20,7 @@ use crate::config::Config;
 use crate::authorizations::users::*;
 
 #[group]
-#[commands(ping, multiply, myid, get_app, get_apps, restart_app)]
+#[commands(ping, multiply, myid, get_app, get_apps, restart_app, scale_app)]
 struct General;
 
 struct Handler;
