@@ -1,5 +1,5 @@
 use crate::HerokuClientKey;
-use heroku_rs::endpoints::{apps, dynos, formations, config_vars};
+use heroku_rs::endpoints::{apps, dynos, formations, config_vars, releases};
 use heroku_rs::framework::apiclient::HerokuApiClient;
 
 use serde::Deserialize;
@@ -160,6 +160,35 @@ pub fn scale_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRes
     Ok(())
 }
 
+
+// Get app by name or id
+#[command]
+#[num_args(1)]
+pub fn get_app_releases(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    let app_name = args
+        .single::<String>()
+        .expect("You must include an app name");
+
+    let response = heroku_client(ctx).request(&releases::ReleaseList {
+        app_id: app_name.clone(),
+    });
+
+    msg.reply(
+        ctx,
+        match response {
+            Ok(releases) => releases_response(releases),
+            Err(e) => {
+                format!(
+                    "An error occured when fetching your Heroku apps:\n{}",
+                    e
+                )
+            }
+        },
+    )?;
+
+    Ok(())
+}
+
 #[command]
 pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
     let response = heroku_client(ctx).request(&apps::AppList {});
@@ -253,6 +282,26 @@ fn apps_response(processed_app_list: Vec<heroku_rs::endpoints::apps::App>) -> St
     }
 
     list
+}
+
+fn releases_response(processed_release_list: Vec<heroku_rs::endpoints::releases::Release>) -> String {
+    let mut list = String::from("Here are your app releases\n");
+
+    for release in processed_release_list {
+        let release_info = release_info_response(release);
+        list.push_str(&release_info);
+    }
+
+    list
+}
+
+fn release_info_response(release: heroku_rs::endpoints::releases::Release) -> String {
+    format!(
+        "ID: {}\nVersion: {}\nStatus: {}\n\n",
+        release.id,
+        release.version,
+        release.status,
+    )
 }
 
 fn heroku_client(ctx: &Context) -> std::sync::Arc<heroku_rs::framework::HttpApiClient> {
