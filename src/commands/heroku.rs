@@ -62,6 +62,7 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
     Ok(())
 }
 
+// Config variables that can be updated through Discord
 // Set only as "FOO" until we fill this in with the real config vars 
 // for our Heroku account that we want to allow to be updated
 const AUTHORIZED_CONFIG_VARS: &[&str] = &["FOO"];
