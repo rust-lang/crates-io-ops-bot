@@ -1,5 +1,5 @@
 use crate::HerokuClientKey;
-use heroku_rs::endpoints::{apps, dynos, formations};
+use heroku_rs::endpoints::{apps, dynos, formations, config_vars};
 use heroku_rs::framework::apiclient::HerokuApiClient;
 
 use serde::Deserialize;
@@ -7,6 +7,8 @@ use serde::Deserialize;
 use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
+
+use std::collections::HashMap;
 
 #[derive(Debug, Deserialize)]
 struct HerokuApp {
@@ -56,6 +58,63 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
             }
         },
     )?;
+
+    Ok(())
+}
+
+// Set only as "FOO" until we fill this in with the real config vars 
+// for our Heroku account that we want to allow to be updated
+const AUTHORIZED_CONFIG_VARS: &[&str] = &["FOO"];
+
+// Get app by name or id
+#[command]
+#[num_args(3)]
+pub fn update_app_config(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    let app_name = args
+        .single::<String>()
+        .expect("You must include an app name");
+
+    let config_var_key = args
+        .single::<String>()
+        .expect("You must include a config variable key");
+
+    let config_var_key_reference: &str = &config_var_key;
+
+    let config_var_value = args
+        .single::<String>()
+        .expect("You must include a config variable value");
+
+    if AUTHORIZED_CONFIG_VARS.contains(&config_var_key_reference) {
+        let mut config_var = HashMap::new();
+        config_var.insert(config_var_key, config_var_value);
+
+        let response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
+            app_id: &app_name.clone(),
+            params: config_var.clone(),
+        });
+
+
+        msg.reply(
+            ctx,
+            match response {
+                Ok(_response) => format!("Config Var has been updated {:?}", config_var),
+                Err(e) => {
+                    format!(
+                        "An error occured when trying to restart your Heroku app:\n{}",
+                        e
+                    )
+                }
+            }
+        )?;
+    } else {
+        msg.reply(
+            ctx.clone(),
+            format!(
+                "Config var {} is not authorized to be updated from Discord",
+                &config_var_key
+            )
+        )?;
+    }
 
     Ok(())
 }
