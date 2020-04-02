@@ -157,6 +157,26 @@ you: ~update_app_config testing-nell-bot FOO bar
 crates-io-bot: @you: Config Var has been updated {"FOO": "bar"}
 ```
 
+**~get_app_releases**
+
+You can get a list of releases for your app through the ~get_app_releases command.
+
+```
+you: ~get_app_releases testing-nell-bot
+crates-io-bot: @you Here are your app releases
+ID: abc-123
+Version: 1
+Status: succeeded
+
+ID: def-456
+Version: 2
+Status: succeeded
+
+ID: ghi-789
+Version: 3
+Status: succeeded
+```
+
 **~scale_app**
 
 You can scale formations of dynos within your application through the ~scale_app command.
