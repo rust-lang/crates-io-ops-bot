@@ -139,6 +139,24 @@ you: ~restart_app your_app_name_or_id
 crates-io-bot: @you: All dynos in your-app-name have been restarted.
 ```
 
+**~update_app_config**
+
+You can update authorized application configuration variables through the ~update_app_config command.
+
+Authorized configuration variables are defined here:
+**heroku.rs**
+```rust
+// Config variables that can be updated through Discord
+const AUTHORIZED_CONFIG_VARS: &[&str] = &["FOO"];
+```
+
+Let's say you have an app called "testing-nell-bot". That app has a config variable with the key "FOO" and you want to update the value of that key to "bar". You would run this command:
+
+```
+you: ~update_app_config testing-nell-bot FOO bar
+crates-io-bot: @you: Config Var has been updated {"FOO": "bar"}
+```
+
 **~scale_app**
 
 You can scale formations of dynos within your application through the ~scale_app command.
