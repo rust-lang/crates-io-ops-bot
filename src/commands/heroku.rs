@@ -137,7 +137,7 @@ pub fn scale_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRes
 
     let response = heroku_client(ctx).request(&formations::FormationUpdate {
         app_id: app_name.clone(),
-        formation_id: formation_name.clone(),
+        formation_id: formation_name,
         params: formations::FormationUpdateParams {
             quantity: Some(quantity),
             size: Some(size),
