@@ -31,7 +31,7 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
     });
 
     msg.reply(
-        ctx.clone(),
+        &ctx,
         match app_resp {
             Ok(app) => app_info_response(app),
             Err(e) => {
@@ -90,7 +90,7 @@ pub fn update_app_config(ctx: &mut Context, msg: &Message, mut args: Args) -> Co
         config_var.insert(config_var_key, config_var_value);
 
         let response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
-            app_id: &app_name.clone(),
+            app_id: &app_name,
             params: config_var.clone(),
         });
 
@@ -109,7 +109,7 @@ pub fn update_app_config(ctx: &mut Context, msg: &Message, mut args: Args) -> Co
         )?;
     } else {
         msg.reply(
-            ctx.clone(),
+            &ctx,
             format!(
                 "Config var {} is not authorized to be updated from Discord",
                 &config_var_key
@@ -170,7 +170,7 @@ pub fn get_app_releases(ctx: &mut Context, msg: &Message, mut args: Args) -> Com
         .expect("You must include an app name");
 
     let response = heroku_client(ctx).request(&releases::ReleaseList {
-        app_id: app_name.clone(),
+        app_id: app_name,
     });
 
     msg.reply(
