@@ -1,5 +1,5 @@
 use crate::HerokuClientKey;
-use heroku_rs::endpoints::{apps, dynos, formations, config_vars, releases};
+use heroku_rs::endpoints::{apps, config_vars, dynos, formations, releases};
 use heroku_rs::framework::apiclient::HerokuApiClient;
 
 use serde::Deserialize;
@@ -34,12 +34,7 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
         &ctx,
         match app_resp {
             Ok(app) => app_info_response(app),
-            Err(e) => {
-                format!(
-                    "An error occurred when fetching your Heroku app:\n{}",
-                    e
-                )
-            }
+            Err(e) => format!("An error occurred when fetching your Heroku app:\n{}", e),
         },
     )?;
 
@@ -50,12 +45,10 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
         ctx,
         match app_formations_resp {
             Ok(formations) => app_formations_response(formations),
-            Err(e) => {
-                format!(
-                    "An error occured when fetching your Heroku app formation info:\n{}",
-                    e
-                )
-            }
+            Err(e) => format!(
+                "An error occured when fetching your Heroku app formation info:\n{}",
+                e
+            ),
         },
     )?;
 
@@ -63,7 +56,7 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
 }
 
 // Config variables that can be updated through Discord
-// Set only as "FOO" until we fill this in with the real config vars 
+// Set only as "FOO" until we fill this in with the real config vars
 // for our Heroku account that we want to allow to be updated
 const AUTHORIZED_CONFIG_VARS: &[&str] = &["FOO"];
 
@@ -94,18 +87,15 @@ pub fn update_app_config(ctx: &mut Context, msg: &Message, mut args: Args) -> Co
             params: config_var.clone(),
         });
 
-
         msg.reply(
             ctx,
             match response {
                 Ok(_response) => format!("Config Var has been updated {:?}", config_var),
-                Err(e) => {
-                    format!(
-                        "An error occured when trying to update your config var:\n{}",
-                        e
-                    )
-                }
-            }
+                Err(e) => format!(
+                    "An error occured when trying to update your config var:\n{}",
+                    e
+                ),
+            },
         )?;
     } else {
         msg.reply(
@@ -113,7 +103,7 @@ pub fn update_app_config(ctx: &mut Context, msg: &Message, mut args: Args) -> Co
             format!(
                 "Config var {} is not authorized to be updated from Discord",
                 &config_var_key
-            )
+            ),
         )?;
     }
 
@@ -148,18 +138,15 @@ pub fn scale_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRes
         ctx,
         match response {
             Ok(formation) => formation_updated_response(app_name, formation),
-            Err(e) => {
-                format!(
-                    "An error occured when trying to scale your app formation:\n{}",
-                    e
-                )
-            }
+            Err(e) => format!(
+                "An error occured when trying to scale your app formation:\n{}",
+                e
+            ),
         },
     )?;
 
     Ok(())
 }
-
 
 // Get app by name or id
 #[command]
@@ -169,20 +156,13 @@ pub fn get_app_releases(ctx: &mut Context, msg: &Message, mut args: Args) -> Com
         .single::<String>()
         .expect("You must include an app name");
 
-    let response = heroku_client(ctx).request(&releases::ReleaseList {
-        app_id: app_name,
-    });
+    let response = heroku_client(ctx).request(&releases::ReleaseList { app_id: app_name });
 
     msg.reply(
         ctx,
         match response {
             Ok(releases) => releases_response(releases),
-            Err(e) => {
-                format!(
-                    "An error occured when fetching your app's releases:\n{}",
-                    e
-                )
-            }
+            Err(e) => format!("An error occured when fetching your app's releases:\n{}", e),
         },
     )?;
 
@@ -197,12 +177,7 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
         ctx,
         match response {
             Ok(apps) => apps_response(apps),
-            Err(e) => {
-                format!(
-                    "An error occured when fetching your Heroku apps:\n{}",
-                    e
-                )
-            }
+            Err(e) => format!("An error occured when fetching your Heroku apps:\n{}", e),
         },
     )?;
 
@@ -224,12 +199,10 @@ pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandR
         ctx,
         match response {
             Ok(_response) => format!("All dynos in {} have been restarted.", app_name),
-            Err(e) => {
-                format!(
-                    "An error occured when trying to restart your Heroku app:\n{}",
-                    e
-                )
-            }
+            Err(e) => format!(
+                "An error occured when trying to restart your Heroku app:\n{}",
+                e
+            ),
         },
     )?;
 
@@ -266,8 +239,14 @@ fn app_formations_response(
     list
 }
 
-fn formation_updated_response(app_name: String, formation: heroku_rs::endpoints::formations::Formation) -> String {
-    let mut response = format!("App {}'s formation {} has been updated", app_name, formation.r#type);
+fn formation_updated_response(
+    app_name: String,
+    formation: heroku_rs::endpoints::formations::Formation,
+) -> String {
+    let mut response = format!(
+        "App {}'s formation {} has been updated",
+        app_name, formation.r#type
+    );
 
     response.push_str(&app_formation_response(formation));
     response
@@ -284,7 +263,9 @@ fn apps_response(processed_app_list: Vec<heroku_rs::endpoints::apps::App>) -> St
     list
 }
 
-fn releases_response(processed_release_list: Vec<heroku_rs::endpoints::releases::Release>) -> String {
+fn releases_response(
+    processed_release_list: Vec<heroku_rs::endpoints::releases::Release>,
+) -> String {
     let mut list = String::from("Here are your app releases\n");
 
     for release in processed_release_list {
@@ -298,9 +279,7 @@ fn releases_response(processed_release_list: Vec<heroku_rs::endpoints::releases:
 fn release_info_response(release: heroku_rs::endpoints::releases::Release) -> String {
     format!(
         "ID: {}\nVersion: {}\nStatus: {}\n\n",
-        release.id,
-        release.version,
-        release.status,
+        release.id, release.version, release.status,
     )
 }
 
