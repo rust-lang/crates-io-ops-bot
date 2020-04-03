@@ -101,7 +101,7 @@ pub fn update_app_config(ctx: &mut Context, msg: &Message, mut args: Args) -> Co
                 Ok(_response) => format!("Config Var has been updated {:?}", config_var),
                 Err(e) => {
                     format!(
-                        "An error occured when trying to restart your Heroku app:\n{}",
+                        "An error occured when trying to update your config var:\n{}",
                         e
                     )
                 }
@@ -179,7 +179,7 @@ pub fn get_app_releases(ctx: &mut Context, msg: &Message, mut args: Args) -> Com
             Ok(releases) => releases_response(releases),
             Err(e) => {
                 format!(
-                    "An error occured when fetching your Heroku apps:\n{}",
+                    "An error occured when fetching your app's releases:\n{}",
                     e
                 )
             }
