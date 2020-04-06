@@ -29,7 +29,8 @@ use crate::authorizations::users::*;
     restart_app,
     scale_app,
     update_app_config,
-    get_app_releases
+    get_app_releases,
+    rollback_app
 )]
 struct General;
 
