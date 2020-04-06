@@ -82,6 +82,8 @@ crates-io-bot: @you: Here is your user id 1234567
 
 ### Heroku commands
 
+**~get_app**
+
 If you run the ~get_app command and pass it either the app name 
 or the app id (and you have a Heroku token set in your environmental variables),
 this bot will respond with information about that app
@@ -93,7 +95,16 @@ App ID: "123abc"
 App Name: "My app 1"
 Released At: 2020-02-12T00:35:44Z
 Web URL: https://www.your_app.herokuapp.com
+
+Formations for this app:
+
+Name: web
+Command: npm start
+Quantity: 1
+Size: Free
 ```
+
+**~get_apps**
 
 If you run the ~get_apps command (and you have a Heroku token set in your environmental variables),
 this bot will respond with a list of apps associated with that Heroku account
@@ -117,6 +128,8 @@ Released At: 2020-02-12T00:35:44Z
 Web URL: https://www.your_app.herokuapp.com
 ```
 
+**~restart_app**
+
 If you run the ~restart_app command and pass it either the app name 
 or the app id (and you have a Heroku token set in your environmental variables),
 this bot will send a request to restart all dynos associated with the app
@@ -126,7 +139,85 @@ you: ~restart_app your_app_name_or_id
 crates-io-bot: @you: All dynos in your-app-name have been restarted.
 ```
 
-There will be more commands specific to managing the crates.io infrastructure very soon.
+**~update_app_config**
+
+You can update authorized application configuration variables through the ~update_app_config command.
+
+Authorized configuration variables are defined here:
+**heroku.rs**
+```rust
+// Config variables that can be updated through Discord
+const AUTHORIZED_CONFIG_VARS: &[&str] = &["FOO"];
+```
+
+Let's say you have an app called "testing-nell-bot". That app has a config variable with the key "FOO" and you want to update the value of that key to "bar". You would run this command:
+
+```
+you: ~update_app_config testing-nell-bot FOO bar
+crates-io-bot: @you: Config Var has been updated {"FOO": "bar"}
+```
+
+**~get_app_releases**
+
+You can get a list of releases for your app through the ~get_app_releases command.
+
+```
+you: ~get_app_releases testing-nell-bot
+crates-io-bot: @you Here are your app releases
+ID: abc-123
+Version: 1
+Status: succeeded
+
+ID: def-456
+Version: 2
+Status: succeeded
+
+ID: ghi-789
+Version: 3
+Status: succeeded
+```
+
+**~scale_app**
+
+You can scale formations of dynos within your application through the ~scale_app command.
+
+For example: Let's say you have an application ("testing-nell-bot") that is running
+* 1 formation - called "web"
+* with 2 dynos in that formation
+* each dyno is size "standard-1X"
+
+If you want to update the formation to have a total of 3 dynos in it, you would run this command:
+
+```
+~scale_app testing-nell-bot web 3 standard-1X
+crates-io-bot: : App testing-nell-bot's formation web has been updated
+Name: web
+Command: npm start
+Quantity: 3
+Size: standard-1X
+```
+
+If you want to scale down the formation to have a total of 2 dynos in it, you would run this command:
+
+```
+~scale_app testing-nell-bot web 2 standard-1X
+crates-io-bot: : App testing-nell-bot's formation web has been updated
+Name: web
+Command: npm start
+Quantity: 2
+Size: standard-1X
+```
+
+If you want to change the size of all dynos in a formation (for example, upgrading all dynos from "standard-1X" to "standard-2X"), you would run this command:
+
+```
+~scale_app testing-nell-bot web 2 standard-2X
+crates-io-bot: : App testing-nell-bot's formation web has been updated
+Name: web
+Command: npm start
+Quantity: 2
+Size: standard-2X
+```
 
 ## Setup
 
