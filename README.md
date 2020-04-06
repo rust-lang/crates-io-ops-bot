@@ -177,6 +177,19 @@ Version: 3
 Status: succeeded
 ```
 
+**~rollback_app**
+
+If you would like to rollback your app to the code associated with a previous release of your app, you can do so with the ~rollback_app command.
+
+```
+you: ~get_app_releases testing-nell-bot version-to-rollback-to
+```
+
+```
+you: ~get_app_releases testing-nell-bot v5
+crates-io-bot: @you App testing-nell-bot was successfully rolled back to the code at v5
+```
+
 **~scale_app**
 
 You can scale formations of dynos within your application through the ~scale_app command.
