@@ -199,7 +199,6 @@ you: ~rollback_app testing-nell-bot 5
 crates-io-bot: @you App testing-nell-bot was successfully rolled back to the code at 5
 ```
 
-
 **~scale_app**
 
 You can scale formations of dynos within your application through the ~scale_app command.
