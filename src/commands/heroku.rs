@@ -58,7 +58,7 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
 // Config variables that can be updated through Discord
 // Set only as "FOO" until we fill this in with the real config vars
 // for our Heroku account that we want to allow to be updated
-const AUTHORIZED_CONFIG_VARS: &[&str] = &["FOO"];
+const AUTHORIZED_CONFIG_VARS: &[&str] = &["BLOCKED_IPS"];
 
 // Get app by name or id
 #[command]
@@ -107,6 +107,31 @@ pub fn update_app_config(ctx: &mut Context, msg: &Message, mut args: Args) -> Co
         )?;
     }
 
+    Ok(())
+}
+
+#[command]
+#[num_args(2)]
+pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    let app_name = args
+        .single::<String>()
+        .expect("You must include an app name");
+
+    let ip_addr = args
+        .single::<String>()
+        .expect("You must include an IP address to block");
+
+    let config_var_list = heroku_client(ctx).request(&config_vars::AppConfigVarDetails { app_id: &app_name }).unwrap();
+    println!("config_var_list {:?}", config_var_list);
+
+    let mut blocked_ips = config_var_list.get(&"BLOCKED_IPS".to_string()).unwrap().as_ref().unwrap().to_string();
+    println!("blocked_ips prior to update {:?}", blocked_ips);
+
+    let to_block_ip = format!(",{}", ip_addr);
+
+    blocked_ips.push_str(&to_block_ip);
+
+    println!("blocked_ips after update {:?}", blocked_ips);
     Ok(())
 }
 
