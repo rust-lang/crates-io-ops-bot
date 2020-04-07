@@ -194,7 +194,7 @@ pub fn rollback_app(ctx: &mut Context, msg: &Message, mut args: Args) -> Command
                 "App {} was successfully rolled back to the code at {}",
                 app_name, version_to_rollback_to
             ),
-            Err(e) => format!("An error occured when trying to rollback your app:\n{}", e),
+            Err(e) => format!("An error occured when trying to roll back your app:\n{}", e),
         },
     )?;
 

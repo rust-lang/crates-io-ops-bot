@@ -182,13 +182,23 @@ Status: succeeded
 If you would like to rollback your app to the code associated with a previous release of your app, you can do so with the ~rollback_app command.
 
 ```
-you: ~get_app_releases testing-nell-bot version-to-rollback-to
+you: ~rollback_app testing-nell-bot version-to-rollback-to
 ```
 
 ```
-you: ~get_app_releases testing-nell-bot v5
+you: ~rollback_app testing-nell-bot v5
+
 crates-io-bot: @you App testing-nell-bot was successfully rolled back to the code at v5
 ```
+
+You can either specify the version with a "v" before the version number or with just the number. This command will also work.
+
+```
+you: ~rollback_app testing-nell-bot 5
+
+crates-io-bot: @you App testing-nell-bot was successfully rolled back to the code at 5
+```
+
 
 **~scale_app**
 
