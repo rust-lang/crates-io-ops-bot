@@ -170,6 +170,38 @@ pub fn get_app_releases(ctx: &mut Context, msg: &Message, mut args: Args) -> Com
 }
 
 #[command]
+#[num_args(2)]
+pub fn rollback_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    let app_name = args
+        .single::<String>()
+        .expect("You must include an app name");
+
+    let version_to_rollback_to = args
+        .single::<String>()
+        .expect("You must include the version to roll back to");
+
+    let response = heroku_client(ctx).request(&releases::ReleaseRollback {
+        app_id: app_name.clone(),
+        params: releases::ReleaseRollbackParams {
+            release: version_to_rollback_to.clone(),
+        },
+    });
+
+    msg.reply(
+        ctx,
+        match response {
+            Ok(_response) => format!(
+                "App {} was successfully rolled back to the code at {}",
+                app_name, version_to_rollback_to
+            ),
+            Err(e) => format!("An error occured when trying to roll back your app:\n{}", e),
+        },
+    )?;
+
+    Ok(())
+}
+
+#[command]
 pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
     let response = heroku_client(ctx).request(&apps::AppList {});
 
