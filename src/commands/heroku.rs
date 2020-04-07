@@ -9,6 +9,9 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 
 use std::collections::HashMap;
+use std::collections::HashSet;
+
+use crate::utilities::*;
 
 #[derive(Debug, Deserialize)]
 struct HerokuApp {
@@ -55,9 +58,7 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
     Ok(())
 }
 
-// Config variables that can be updated through Discord
-// Set only as "FOO" until we fill this in with the real config vars
-// for our Heroku account that we want to allow to be updated
+// App config variables that can be updated through Discord
 const AUTHORIZED_CONFIG_VARS: &[&str] = &["BLOCKED_IPS"];
 
 // Get app by name or id
@@ -122,16 +123,20 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
         .expect("You must include an IP address to block");
 
     let config_var_list = heroku_client(ctx).request(&config_vars::AppConfigVarDetails { app_id: &app_name }).unwrap();
-    println!("config_var_list {:?}", config_var_list);
 
-    let mut blocked_ips = config_var_list.get(&"BLOCKED_IPS".to_string()).unwrap().as_ref().unwrap().to_string();
-    println!("blocked_ips prior to update {:?}", blocked_ips);
+    let blocked_ips = config_var_list.get(&"BLOCKED_IPS".to_string()).unwrap().as_ref().unwrap().to_string();
 
-    let to_block_ip = format!(",{}", ip_addr);
+    let mut blocked_ips_set = parse_config_value_set(blocked_ips);
 
-    blocked_ips.push_str(&to_block_ip);
+    if blocked_ips_set.contains(&ip_addr) {
+        msg.reply(
+            &ctx,
+            format!("That IP address is already blocked for {}", app_name),
+        )?;
+    } else {
+        blocked_ips_set.insert(ip_addr);
+    };
 
-    println!("blocked_ips after update {:?}", blocked_ips);
     Ok(())
 }
 
