@@ -122,14 +122,12 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
         .single::<String>()
         .expect("You must include an IP address to block");
 
-    let blocked_ips_value = block_ips_value(heroku_app_config_vars(&ctx, &app_name));
-
-    let mut blocked_ips_set = parse_config_value_set(blocked_ips_value);
+    let mut blocked_ips_set = current_blocked_ip_addresses(&ctx, &app_name);
 
     if blocked_ips_set.contains(&ip_addr) {
         msg.reply(
             &ctx,
-            format!("That IP address is already blocked for {}", app_name),
+            format!("{} is already blocked for {}", &ip_addr, app_name),
         )?;
     } else {
         blocked_ips_set.insert(ip_addr.clone());
@@ -157,6 +155,49 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
     Ok(())
 }
 
+#[command]
+#[num_args(2)]
+pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    let app_name = args
+        .single::<String>()
+        .expect("You must include an app name");
+
+    let ip_addr = args
+        .single::<String>()
+        .expect("You must include an IP address to unblock");
+
+    let mut blocked_ips_set = current_blocked_ip_addresses(&ctx, &app_name);
+
+    if !blocked_ips_set.contains(&ip_addr) {
+        msg.reply(
+            &ctx,
+            format!("{} is not currently blocked for {}", &ip_addr, app_name),
+        )?;
+    } else {
+        blocked_ips_set.remove(&ip_addr);
+        let updated_config_var = blocked_ips_config_var(blocked_ips_set);
+
+        let response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
+            app_id: &app_name,
+            params: updated_config_var,
+        });
+
+        msg.reply(
+            ctx,
+            match response {
+                Ok(_response) => format!("IP address {} has been unblocked", ip_addr.clone()),
+                Err(e) => format!(
+                    "An error occurred when trying to unblock the IP address: {}\n{}",
+                    ip_addr,
+                    e
+                ),
+            },
+        )?;
+    }
+
+    Ok(())
+}
+ 
 #[command]
 #[num_args(4)]
 pub fn scale_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
@@ -389,4 +430,11 @@ fn config_var(updated_blocked_ips_value: String) -> HashMap<String, String> {
     let mut config_var = HashMap::new();
     config_var.insert("BLOCKED_IPS".to_string(), updated_blocked_ips_value);
     config_var
+}
+
+fn current_blocked_ip_addresses(ctx: &Context, app_name: &str) -> HashSet<String> {
+    let blocked_ips_value = block_ips_value(heroku_app_config_vars(&ctx, &app_name));
+
+    let blocked_ips_set = parse_config_value_set(blocked_ips_value);
+    blocked_ips_set
 }
