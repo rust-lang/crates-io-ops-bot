@@ -122,11 +122,9 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
         .single::<String>()
         .expect("You must include an IP address to block");
 
-    let config_var_list = heroku_client(ctx).request(&config_vars::AppConfigVarDetails { app_id: &app_name }).unwrap();
+    let blocked_ips_value = block_ips_value(heroku_app_config_vars(&ctx, &app_name));
 
-    let blocked_ips = config_var_list.get(&"BLOCKED_IPS".to_string()).unwrap().as_ref().unwrap().to_string();
-
-    let mut blocked_ips_set = parse_config_value_set(blocked_ips);
+    let mut blocked_ips_set = parse_config_value_set(blocked_ips_value);
 
     if blocked_ips_set.contains(&ip_addr) {
         msg.reply(
@@ -134,7 +132,26 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
             format!("That IP address is already blocked for {}", app_name),
         )?;
     } else {
-        blocked_ips_set.insert(ip_addr);
+        blocked_ips_set.insert(ip_addr.clone());
+
+        let updated_config_var = blocked_ips_config_var(blocked_ips_set);
+        
+        let response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
+            app_id: &app_name,
+            params: updated_config_var,
+        });
+
+        msg.reply(
+            ctx,
+            match response {
+                Ok(_response) => format!("IP address {} has been blocked", ip_addr.clone()),
+                Err(e) => format!(
+                    "An error occurred when trying to block the IP address: {}\n{}",
+                    ip_addr,
+                    e
+                ),
+            },
+        )?;
     };
 
     Ok(())
@@ -351,4 +368,25 @@ fn heroku_client(ctx: &Context) -> std::sync::Arc<heroku_rs::framework::HttpApiC
         .get::<HerokuClientKey>()
         .expect("Expected Heroku Client Key")
         .clone()
+}
+
+fn heroku_app_config_vars(ctx: &Context, app_name: &str) -> HashMap<String, Option<String>> {
+    let config_var_list = heroku_client(ctx).request(&config_vars::AppConfigVarDetails { app_id: &app_name }).unwrap();
+    config_var_list
+}
+
+fn block_ips_value(config_vars: HashMap<String, Option<String>>) -> String {
+    config_vars.get(&"BLOCKED_IPS".to_string()).unwrap().as_ref().unwrap().to_string()
+}
+
+fn blocked_ips_config_var(blocked_ips_set: HashSet<String>) -> HashMap<String,String> {
+    let blocked_ips_set_string = parse_config_value_string(blocked_ips_set);
+    let blocked_ips_config_var = config_var(blocked_ips_set_string);
+    blocked_ips_config_var
+}
+
+fn config_var(updated_blocked_ips_value: String) -> HashMap<String, String> {
+    let mut config_var = HashMap::new();
+    config_var.insert("BLOCKED_IPS".to_string(), updated_blocked_ips_value);
+    config_var
 }
