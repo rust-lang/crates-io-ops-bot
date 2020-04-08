@@ -13,7 +13,17 @@ pub fn parse_config_value_set(config_value: String) -> HashSet<String> {
 }
 
 pub fn parse_config_value_string(config_value: HashSet<String>) -> String {
-    String::from("wheee");
+    let mut combined_string = String::new();
+
+    for item in config_value.iter() {
+        let item_string = format!("{},", item);
+        combined_string.push_str(&item_string);
+    }
+
+    // Remove last comma
+    combined_string.pop();
+
+    combined_string
 }
 
 #[cfg(test)]
@@ -32,7 +42,7 @@ mod tests {
 
     #[test]
     fn create_authorized_users_string() {
-        let users_hash_set = HashSet::new();
+        let mut users_hash_set = HashSet::new();
         users_hash_set.insert("123".to_string());
         users_hash_set.insert("456".to_string());
         users_hash_set.insert("789".to_string());
