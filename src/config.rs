@@ -1,7 +1,7 @@
+use crate::utilities::*;
 use serenity::prelude::TypeMapKey;
 use std::collections::HashSet;
 use std::sync::Arc;
-use crate::utilities::*;
 
 #[derive(Debug, Clone)]
 pub struct Config {
