@@ -174,23 +174,45 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         )?;
     } else {
         blocked_ips_set.remove(&ip_addr);
-        let updated_config_var = blocked_ips_config_var(blocked_ips_set);
+        if blocked_ips_set.is_empty() {
+            let config_var_to_delete = null_blocked_ips_config_var();
 
-        let response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
-            app_id: &app_name,
-            params: updated_config_var,
-        });
+            let response = heroku_client(ctx).request(&config_vars::AppConfigVarDelete {
+                app_id: &app_name,
+                params: config_var_to_delete,
+            });
 
-        msg.reply(
-            ctx,
-            match response {
-                Ok(_response) => format!("IP address {} has been unblocked", ip_addr.clone()),
-                Err(e) => format!(
-                    "An error occurred when trying to unblock the IP address: {}\n{}",
-                    ip_addr, e
-                ),
-            },
-        )?;
+            msg.reply(
+                ctx,
+                match response {
+                    Ok(_response) => format!("IP address {} has been unblocked, there are now no unblocked IP addresses", ip_addr.clone()),
+                    Err(e) => format!(
+                        "An error occurred when trying to unblock the IP address: {}\n{}",
+                        ip_addr, e
+                    ),
+                },
+            )?;
+
+        } else {
+            let updated_config_var = blocked_ips_config_var(blocked_ips_set);
+
+            let response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
+                app_id: &app_name,
+                params: updated_config_var,
+            });
+
+            msg.reply(
+                ctx,
+                match response {
+                    Ok(_response) => format!("IP address {} has been unblocked", ip_addr.clone()),
+                    Err(e) => format!(
+                        "An error occurred when trying to unblock the IP address: {}\n{}",
+                        ip_addr, e
+                    ),
+                },
+            )?;
+        };
+
     }
 
     Ok(())
@@ -442,4 +464,10 @@ fn current_blocked_ip_addresses(ctx: &Context, app_name: &str) -> HashSet<String
 
     let blocked_ips_set = parse_config_value_set(blocked_ips_value);
     blocked_ips_set
+}
+
+fn null_blocked_ips_config_var() -> HashMap<String, Option<String>> {
+    let mut config_var = HashMap::new();
+    config_var.insert("BLOCKED_IPS".to_string(), None);
+    config_var
 }
