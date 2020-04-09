@@ -16,8 +16,12 @@ pub fn parse_config_value_string(config_value: HashSet<String>) -> String {
     let mut combined_string = String::new();
 
     for item in config_value.iter() {
-        let item_string = format!("{},", item);
-        combined_string.push_str(&item_string);
+        if item.is_empty() {
+            continue;
+        } else {
+            let item_string = format!("{},", item);
+            combined_string.push_str(&item_string);
+        }
     }
 
     // Remove last comma

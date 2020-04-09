@@ -122,6 +122,31 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
         .single::<String>()
         .expect("You must include an IP address to block");
 
+    let current_config_vars = heroku_app_config_vars(&ctx, &app_name);
+
+    // If the BLOCKED_IPS environmental variable does not
+    // currently exist, create it
+    if current_config_vars
+        .get(&"BLOCKED_IPS".to_string())
+        .is_none()
+    {
+        let response = heroku_client(&ctx).request(&config_vars::AppConfigVarUpdate {
+            app_id: &app_name,
+            params: empty_config_var(),
+        });
+
+        msg.reply(
+            &ctx,
+            match response {
+                Ok(_response) => format!("The BLOCKED_IPS environmental variable has been created for {}", app_name),
+                Err(e) => format!(
+                    "The BLOCKED_IPS environmetal variable does not current exist for {}.\n There was an error when trying to create it: {}",
+                    app_name, e
+                ),
+            },
+        )?;
+    }
+
     let mut blocked_ips_set = current_blocked_ip_addresses(&ctx, &app_name);
 
     if blocked_ips_set.contains(&ip_addr) {
@@ -186,14 +211,16 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             msg.reply(
                 ctx,
                 match response {
-                    Ok(_response) => format!("IP address {} has been unblocked, there are now no unblocked IP addresses", ip_addr.clone()),
+                    Ok(_response) => format!(
+                        "IP address {} has been unblocked, there are now no unblocked IP addresses",
+                        ip_addr.clone()
+                    ),
                     Err(e) => format!(
                         "An error occurred when trying to unblock the IP address: {}\n{}",
                         ip_addr, e
                     ),
                 },
             )?;
-
         } else {
             let response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
                 app_id: &app_name,
@@ -211,7 +238,6 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
                 },
             )?;
         };
-
     }
 
     Ok(())
@@ -455,6 +481,12 @@ fn blocked_ips_config_var(blocked_ips_set: HashSet<String>) -> HashMap<String, S
 fn config_var(updated_blocked_ips_value: String) -> HashMap<String, String> {
     let mut config_var = HashMap::new();
     config_var.insert("BLOCKED_IPS".to_string(), updated_blocked_ips_value);
+    config_var
+}
+
+fn empty_config_var() -> HashMap<String, String> {
+    let mut config_var = HashMap::new();
+    config_var.insert("BLOCKED_IPS".to_string(), "".to_string());
     config_var
 }
 
