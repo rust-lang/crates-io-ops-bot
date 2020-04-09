@@ -174,12 +174,13 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         )?;
     } else {
         blocked_ips_set.remove(&ip_addr);
-        if blocked_ips_set.is_empty() {
-            let config_var_to_delete = null_blocked_ips_config_var();
 
+        // Removes config variable from the Heroku application
+        // if there are no more blocked ip addresses
+        if blocked_ips_set.is_empty() {
             let response = heroku_client(ctx).request(&config_vars::AppConfigVarDelete {
                 app_id: &app_name,
-                params: config_var_to_delete,
+                params: null_blocked_ips_config_var(),
             });
 
             msg.reply(
@@ -194,11 +195,9 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             )?;
 
         } else {
-            let updated_config_var = blocked_ips_config_var(blocked_ips_set);
-
             let response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
                 app_id: &app_name,
-                params: updated_config_var,
+                params: blocked_ips_config_var(blocked_ips_set),
             });
 
             msg.reply(
