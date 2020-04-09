@@ -241,6 +241,33 @@ Quantity: 2
 Size: standard-2X
 ```
 
+**~block_ip**
+
+If you wish to block an IP address from accessing your application, you can do so with the ~block_ip command.
+
+```
+you: ~block_ip you_app_name ip_address_to_block
+```
+
+```
+you: ~block_ip testing-nell-bot 123.456.68
+crates-io-bot: @you IP address 123.456.789 
+```
+
+**~unblock_ip**
+
+If you wish to unblock an IP address that was previously
+blocked for your application you can do so with the ~unblock_ip command:
+
+```
+you: ~unblock_ip you_app_name ip_address_to_unblock
+```
+
+```
+you: ~unblock_ip testing-nell-bot 123.456.68
+crates-io-bot: @you IP address 123.456.789 has been unblocked
+```
+
 ## Setup
 
 To setup this Discord bot, you need:
