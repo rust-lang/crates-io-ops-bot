@@ -52,6 +52,8 @@ mod tests {
         users_hash_set.insert("789".to_string());
 
         let users_string = parse_config_value_string(users_hash_set);
-        assert_eq!(users_string, "123,456,789");
+        assert!(users_string.contains("123"));
+        assert!(users_string.contains("456"));
+        assert!(users_string.contains("789"));
     }
 }
