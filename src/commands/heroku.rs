@@ -197,6 +197,15 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
 
     let current_config_vars = heroku_app_config_vars(&ctx, &app_name);
 
+    if !blocked_ips_exist(&current_config_vars) {
+        msg.reply(
+            &ctx,
+            format!("No IP addresses are currently blocked for {}", &app_name),
+        )?;
+
+        return Ok(())
+    }
+
     let mut blocked_ips_set = current_blocked_ip_addresses(current_config_vars);
 
     if !blocked_ips_set.contains(&ip_addr) {
