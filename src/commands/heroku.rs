@@ -111,7 +111,7 @@ pub fn update_app_config(ctx: &mut Context, msg: &Message, mut args: Args) -> Co
     Ok(())
 }
 
-const BLOCKED_IPS_ENV_VAR : &str = "BLOCKED_IPS";
+const BLOCKED_IPS_ENV_VAR: &str = "BLOCKED_IPS";
 
 #[command]
 #[num_args(2)]
@@ -148,7 +148,7 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
         )?;
 
         if response_err {
-            return Ok(())
+            return Ok(());
         }
     }
 
@@ -203,7 +203,7 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             format!("No IP addresses are currently blocked for {}", &app_name),
         )?;
 
-        return Ok(())
+        return Ok(());
     }
 
     let mut blocked_ips_set = current_blocked_ip_addresses(current_config_vars);
