@@ -137,16 +137,23 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
             params: empty_config_var(),
         });
 
+        let response_err = response.is_err();
+
         msg.reply(
             &ctx,
             match response {
                 Ok(_response) => format!("The {} environmental variable has been created for {}", BLOCKED_IPS_ENV_VAR, app_name),
                 Err(e) => format!(
-                    "The {} environmetal variable does not current exist for {}.\n There was an error when trying to create it: {}",
+                    "The {} environmental variable does not current exist for {}.\n There was an error when trying to create it: {}",
                     BLOCKED_IPS_ENV_VAR, app_name, e
                 ),
             },
         )?;
+
+        if response_err {
+            return Ok(())
+        }
+
     }
 
     let mut blocked_ips_set = current_blocked_ip_addresses(&ctx, &app_name);
