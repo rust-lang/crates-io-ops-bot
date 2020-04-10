@@ -128,10 +128,7 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
 
     // If the BLOCKED_IPS environmental variable does not
     // currently exist, create it
-    if current_config_vars
-        .get(&BLOCKED_IPS_ENV_VAR.to_string())
-        .is_none()
-    {
+    if !blocked_ips_exist(&current_config_vars) {
         let response = heroku_client(&ctx).request(&config_vars::AppConfigVarUpdate {
             app_id: &app_name,
             params: empty_config_var(),
@@ -153,10 +150,9 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
         if response_err {
             return Ok(())
         }
-
     }
 
-    let mut blocked_ips_set = current_blocked_ip_addresses(&ctx, &app_name);
+    let mut blocked_ips_set = current_blocked_ip_addresses(current_config_vars);
 
     if blocked_ips_set.contains(&ip_addr) {
         msg.reply(
@@ -199,7 +195,9 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .single::<String>()
         .expect("You must include an IP address to unblock");
 
-    let mut blocked_ips_set = current_blocked_ip_addresses(&ctx, &app_name);
+    let current_config_vars = heroku_app_config_vars(&ctx, &app_name);
+
+    let mut blocked_ips_set = current_blocked_ip_addresses(current_config_vars);
 
     if !blocked_ips_set.contains(&ip_addr) {
         msg.reply(
@@ -499,8 +497,8 @@ fn empty_config_var() -> HashMap<String, String> {
     config_var
 }
 
-fn current_blocked_ip_addresses(ctx: &Context, app_name: &str) -> HashSet<String> {
-    let blocked_ips_value = block_ips_value(heroku_app_config_vars(&ctx, &app_name));
+fn current_blocked_ip_addresses(config_vars: HashMap<String, Option<String>>) -> HashSet<String> {
+    let blocked_ips_value = block_ips_value(config_vars);
 
     let blocked_ips_set = parse_config_value_set(blocked_ips_value);
     blocked_ips_set
@@ -510,4 +508,9 @@ fn null_blocked_ips_config_var() -> HashMap<String, Option<String>> {
     let mut config_var = HashMap::new();
     config_var.insert(BLOCKED_IPS_ENV_VAR.to_string(), None);
     config_var
+}
+
+fn blocked_ips_exist(config_vars: &HashMap<String, Option<String>>) -> bool {
+    let exists = config_vars.get(&BLOCKED_IPS_ENV_VAR.to_string()).is_some();
+    exists
 }
