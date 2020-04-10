@@ -59,7 +59,7 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
 }
 
 // App config variables that can be updated through Discord
-const AUTHORIZED_CONFIG_VARS: &[&str] = &["BLOCKED_IPS"];
+const AUTHORIZED_CONFIG_VARS: &[&str] = &["FOO"];
 
 // Get app by name or id
 #[command]
