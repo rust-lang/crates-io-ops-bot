@@ -111,6 +111,8 @@ pub fn update_app_config(ctx: &mut Context, msg: &Message, mut args: Args) -> Co
     Ok(())
 }
 
+const BLOCKED_IPS_ENV_VAR : &str = "BLOCKED_IPS";
+
 #[command]
 #[num_args(2)]
 pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
@@ -127,7 +129,7 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
     // If the BLOCKED_IPS environmental variable does not
     // currently exist, create it
     if current_config_vars
-        .get(&"BLOCKED_IPS".to_string())
+        .get(&BLOCKED_IPS_ENV_VAR.to_string())
         .is_none()
     {
         let response = heroku_client(&ctx).request(&config_vars::AppConfigVarUpdate {
@@ -138,10 +140,10 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
         msg.reply(
             &ctx,
             match response {
-                Ok(_response) => format!("The BLOCKED_IPS environmental variable has been created for {}", app_name),
+                Ok(_response) => format!("The {} environmental variable has been created for {}", BLOCKED_IPS_ENV_VAR, app_name),
                 Err(e) => format!(
-                    "The BLOCKED_IPS environmetal variable does not current exist for {}.\n There was an error when trying to create it: {}",
-                    app_name, e
+                    "The {} environmetal variable does not current exist for {}.\n There was an error when trying to create it: {}",
+                    BLOCKED_IPS_ENV_VAR, app_name, e
                 ),
             },
         )?;
@@ -465,7 +467,7 @@ fn heroku_app_config_vars(ctx: &Context, app_name: &str) -> HashMap<String, Opti
 
 fn block_ips_value(config_vars: HashMap<String, Option<String>>) -> String {
     config_vars
-        .get(&"BLOCKED_IPS".to_string())
+        .get(&BLOCKED_IPS_ENV_VAR.to_string())
         .unwrap()
         .as_ref()
         .unwrap()
@@ -480,13 +482,13 @@ fn blocked_ips_config_var(blocked_ips_set: HashSet<String>) -> HashMap<String, S
 
 fn config_var(updated_blocked_ips_value: String) -> HashMap<String, String> {
     let mut config_var = HashMap::new();
-    config_var.insert("BLOCKED_IPS".to_string(), updated_blocked_ips_value);
+    config_var.insert(BLOCKED_IPS_ENV_VAR.to_string(), updated_blocked_ips_value);
     config_var
 }
 
 fn empty_config_var() -> HashMap<String, String> {
     let mut config_var = HashMap::new();
-    config_var.insert("BLOCKED_IPS".to_string(), "".to_string());
+    config_var.insert(BLOCKED_IPS_ENV_VAR.to_string(), "".to_string());
     config_var
 }
 
@@ -499,6 +501,6 @@ fn current_blocked_ip_addresses(ctx: &Context, app_name: &str) -> HashSet<String
 
 fn null_blocked_ips_config_var() -> HashMap<String, Option<String>> {
     let mut config_var = HashMap::new();
-    config_var.insert("BLOCKED_IPS".to_string(), None);
+    config_var.insert(BLOCKED_IPS_ENV_VAR.to_string(), None);
     config_var
 }
