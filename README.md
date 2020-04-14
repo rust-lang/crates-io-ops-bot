@@ -251,7 +251,7 @@ you: ~block_ip you_app_name ip_address_to_block
 
 ```
 you: ~block_ip testing-nell-bot 123.456.68
-crates-io-bot: @you IP address 123.456.789 
+crates-io-bot: @you IP address 123.456.68 
 ```
 
 **~unblock_ip**

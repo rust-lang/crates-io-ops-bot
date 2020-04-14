@@ -1,33 +1,12 @@
 use std::collections::HashSet;
 
 pub fn parse_config_value_set(config_value: String) -> HashSet<String> {
-    let mut value_set = HashSet::new();
-
-    let split_string = config_value.split(',');
-
-    for string in split_string {
-        value_set.insert(String::from(string));
-    }
-
-    value_set
+    config_value.split(',').map(String::from).collect()
 }
 
 pub fn parse_config_value_string(config_value: HashSet<String>) -> String {
-    let mut combined_string = String::new();
-
-    for item in config_value.iter() {
-        if item.is_empty() {
-            continue;
-        } else {
-            let item_string = format!("{},", item);
-            combined_string.push_str(&item_string);
-        }
-    }
-
-    // Remove last comma
-    combined_string.pop();
-
-    combined_string
+    let non_empty: Vec<String> = config_value.into_iter().filter(|s| !s.is_empty()).collect();
+    non_empty.join(",")
 }
 
 #[cfg(test)]
