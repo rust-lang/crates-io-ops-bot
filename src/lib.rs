@@ -15,6 +15,8 @@ mod authorizations;
 
 pub mod config;
 
+pub mod utilities;
+
 use crate::config::Config;
 
 use crate::authorizations::users::*;
@@ -30,7 +32,9 @@ use crate::authorizations::users::*;
     scale_app,
     update_app_config,
     get_app_releases,
-    rollback_app
+    rollback_app,
+    block_ip,
+    unblock_ip
 )]
 struct General;
 

@@ -9,6 +9,9 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 
 use std::collections::HashMap;
+use std::collections::HashSet;
+
+use crate::utilities::*;
 
 #[derive(Debug, Deserialize)]
 struct HerokuApp {
@@ -55,9 +58,7 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
     Ok(())
 }
 
-// Config variables that can be updated through Discord
-// Set only as "FOO" until we fill this in with the real config vars
-// for our Heroku account that we want to allow to be updated
+// App config variables that can be updated through Discord
 const AUTHORIZED_CONFIG_VARS: &[&str] = &["FOO"];
 
 // Get app by name or id
@@ -105,6 +106,154 @@ pub fn update_app_config(ctx: &mut Context, msg: &Message, mut args: Args) -> Co
                 &config_var_key
             ),
         )?;
+    }
+
+    Ok(())
+}
+
+const BLOCKED_IPS_ENV_VAR: &str = "BLOCKED_IPS";
+
+#[command]
+#[num_args(2)]
+pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    let app_name = args
+        .single::<String>()
+        .expect("You must include an app name");
+
+    let ip_addr = args
+        .single::<String>()
+        .expect("You must include an IP address to block");
+
+    let current_config_vars = heroku_app_config_vars(&ctx, &app_name);
+
+    // If the BLOCKED_IPS environmental variable does not
+    // currently exist, create it
+    if !blocked_ips_exist(&current_config_vars) {
+        let response = heroku_client(&ctx).request(&config_vars::AppConfigVarUpdate {
+            app_id: &app_name,
+            params: empty_config_var(),
+        });
+
+        let response_err = response.is_err();
+
+        msg.reply(
+            &ctx,
+            match response {
+                Ok(_response) => format!("The {} environmental variable has been created for {}", BLOCKED_IPS_ENV_VAR, app_name),
+                Err(e) => format!(
+                    "The {} environmental variable does not current exist for {}.\n There was an error when trying to create it: {}",
+                    BLOCKED_IPS_ENV_VAR, app_name, e
+                ),
+            },
+        )?;
+
+        if response_err {
+            return Ok(());
+        }
+    }
+
+    let mut blocked_ips_set = current_blocked_ip_addresses(current_config_vars);
+
+    if blocked_ips_set.contains(&ip_addr) {
+        msg.reply(
+            &ctx,
+            format!("{} is already blocked for {}", &ip_addr, app_name),
+        )?;
+    } else {
+        blocked_ips_set.insert(ip_addr.clone());
+
+        let updated_config_var = blocked_ips_config_var(blocked_ips_set);
+
+        let response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
+            app_id: &app_name,
+            params: updated_config_var,
+        });
+
+        msg.reply(
+            ctx,
+            match response {
+                Ok(_response) => format!("IP address {} has been blocked", ip_addr.clone()),
+                Err(e) => format!(
+                    "An error occurred when trying to block the IP address: {}\n{}",
+                    ip_addr, e
+                ),
+            },
+        )?;
+    };
+
+    Ok(())
+}
+
+#[command]
+#[num_args(2)]
+pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    let app_name = args
+        .single::<String>()
+        .expect("You must include an app name");
+
+    let ip_addr = args
+        .single::<String>()
+        .expect("You must include an IP address to unblock");
+
+    let current_config_vars = heroku_app_config_vars(&ctx, &app_name);
+
+    if !blocked_ips_exist(&current_config_vars) {
+        msg.reply(
+            &ctx,
+            format!("No IP addresses are currently blocked for {}", &app_name),
+        )?;
+
+        return Ok(());
+    }
+
+    let mut blocked_ips_set = current_blocked_ip_addresses(current_config_vars);
+
+    if !blocked_ips_set.contains(&ip_addr) {
+        msg.reply(
+            &ctx,
+            format!("{} is not currently blocked for {}", &ip_addr, app_name),
+        )?;
+    } else {
+        blocked_ips_set.remove(&ip_addr);
+
+        // Removes config variable from the Heroku application
+        // if there are no more blocked ip addresses
+        if blocked_ips_set.is_empty() {
+            let response = heroku_client(ctx).request(&config_vars::AppConfigVarDelete {
+                app_id: &app_name,
+                params: null_blocked_ips_config_var(),
+            });
+
+            msg.reply(
+                ctx,
+                match response {
+                    Ok(_response) => format!(
+                        "IP address {} has been unblocked, there are now no unblocked IP addresses",
+                        ip_addr.clone()
+                    ),
+                    Err(e) => format!(
+                        "An error occurred when trying to unblock the IP address: {}\n{}",
+                        ip_addr, e
+                    ),
+                },
+            )?;
+        } else {
+            let response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
+                app_id: &app_name,
+                params: blocked_ips_config_var(blocked_ips_set),
+            });
+
+            msg.reply(
+                ctx,
+                match response {
+                    Ok(_response) => format!("IP address {} has been unblocked", ip_addr.clone()),
+                    Err(e) => format!(
+                        "An error occurred when trying to unblock the IP address: {}\n{}",
+                        ip_addr, e
+                    ),
+                },
+            )?;
+        };
     }
 
     Ok(())
@@ -321,4 +470,56 @@ fn heroku_client(ctx: &Context) -> std::sync::Arc<heroku_rs::framework::HttpApiC
         .get::<HerokuClientKey>()
         .expect("Expected Heroku Client Key")
         .clone()
+}
+
+fn heroku_app_config_vars(ctx: &Context, app_name: &str) -> HashMap<String, Option<String>> {
+    let config_var_list = heroku_client(ctx)
+        .request(&config_vars::AppConfigVarDetails { app_id: &app_name })
+        .unwrap();
+    config_var_list
+}
+
+fn block_ips_value(config_vars: HashMap<String, Option<String>>) -> String {
+    config_vars
+        .get(&BLOCKED_IPS_ENV_VAR.to_string())
+        .unwrap()
+        .as_ref()
+        .unwrap()
+        .to_string()
+}
+
+fn blocked_ips_config_var(blocked_ips_set: HashSet<String>) -> HashMap<String, String> {
+    let blocked_ips_set_string = parse_config_value_string(blocked_ips_set);
+    let blocked_ips_config_var = config_var(blocked_ips_set_string);
+    blocked_ips_config_var
+}
+
+fn config_var(updated_blocked_ips_value: String) -> HashMap<String, String> {
+    let mut config_var = HashMap::new();
+    config_var.insert(BLOCKED_IPS_ENV_VAR.to_string(), updated_blocked_ips_value);
+    config_var
+}
+
+fn empty_config_var() -> HashMap<String, String> {
+    let mut config_var = HashMap::new();
+    config_var.insert(BLOCKED_IPS_ENV_VAR.to_string(), "".to_string());
+    config_var
+}
+
+fn current_blocked_ip_addresses(config_vars: HashMap<String, Option<String>>) -> HashSet<String> {
+    let blocked_ips_value = block_ips_value(config_vars);
+
+    let blocked_ips_set = parse_config_value_set(blocked_ips_value);
+    blocked_ips_set
+}
+
+fn null_blocked_ips_config_var() -> HashMap<String, Option<String>> {
+    let mut config_var = HashMap::new();
+    config_var.insert(BLOCKED_IPS_ENV_VAR.to_string(), None);
+    config_var
+}
+
+fn blocked_ips_exist(config_vars: &HashMap<String, Option<String>>) -> bool {
+    let exists = config_vars.get(&BLOCKED_IPS_ENV_VAR.to_string()).is_some();
+    exists
 }
