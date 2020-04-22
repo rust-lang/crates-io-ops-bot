@@ -1,5 +1,5 @@
 use crate::HerokuClientKey;
-use heroku_rs::endpoints::{apps, config_vars, dynos, formations, releases};
+use heroku_rs::endpoints::{apps, builds, config_vars, dynos, formations, releases};
 use heroku_rs::framework::apiclient::HerokuApiClient;
 
 use serde::Deserialize;
@@ -10,6 +10,8 @@ use serenity::prelude::*;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
+
+use std::{thread, time};
 
 use crate::utilities::*;
 
@@ -390,6 +392,158 @@ pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandR
     Ok(())
 }
 
+#[command]
+#[num_args(3)]
+pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    let app_name = args
+        .single::<String>()
+        .expect("You must include an app name");
+
+    let source_url = args
+        .single::<String>()
+        .expect("You must include a link to the Github release tar file");
+
+    let app_version = args
+        .single::<String>()
+        .expect("You must include an app version");
+
+    let buildpack_params = heroku_rs::endpoints::builds::post::BuildpackParam {
+        url: String::from("https://github.com/emk/heroku-buildpack-rust"),
+        name: String::from("emk/rust"),
+    };
+
+    // Create a build
+    let build_create_response = heroku_client(ctx).request(&builds::BuildCreate {
+        app_id: app_name.clone(),
+        params: builds::BuildCreateParams {
+            buildpacks: Some(vec![buildpack_params]),
+            source_blob: builds::SourceBlobParam {
+                checksum: None,
+                url: source_url,
+                version: Some(app_version.clone()),
+            },
+        },
+    });
+
+    if build_create_response.is_err() {
+        msg.reply(
+            &ctx,
+            format!(
+                "An error occured when trying to build {}:\n{:?}",
+                app_name.clone(),
+                build_create_response.err()
+            ),
+        )?;
+
+        return Ok(());
+    }
+
+    let build = build_create_response.unwrap();
+
+    msg.reply(&ctx, build_response(app_name.clone(), &build))?;
+
+    // Check status of the build
+    let mut build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
+        app_id: app_name.clone(),
+        build_id: build.clone().id,
+    });
+
+    if build_info_response.is_err() {
+        msg.reply(
+            &ctx,
+            format!(
+                "An error occured when trying to get the status of build {} for {}",
+                &build.id,
+                app_name.clone()
+            ),
+        )?;
+
+        return Ok(());
+    }
+
+    while build_info_response.unwrap().status == String::from("pending") {
+        msg.channel_id.say(
+            &ctx,
+            format!("Build {} is still pending...", build.clone().id),
+        )?;
+
+        let duration = time::Duration::from_secs(15);
+        thread::sleep(duration);
+
+        build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
+            app_id: app_name.clone(),
+            build_id: build.clone().id,
+        });
+
+        if build_info_response.is_err() {
+            msg.reply(
+                &ctx,
+                format!(
+                    "An error occured when trying to get the status of build {} for {}",
+                    &build.id,
+                    app_name.clone()
+                ),
+            )?;
+
+            return Ok(());
+        }
+    }
+
+    msg.reply(
+        &ctx,
+        format!(
+            "Build {} is complete for {}, moving on to releasing the app",
+            &build.id,
+            app_name.clone()
+        ),
+    )?;
+
+    // Release the new build
+    let final_build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
+        app_id: app_name.clone(),
+        build_id: build.clone().id,
+    });
+
+    if final_build_info_response.is_err() {
+        msg.reply(
+            &ctx,
+            format!(
+                "Unable to get the final information for build {} for {}, cancelling release",
+                &build.id,
+                app_name.clone()
+            ),
+        )?;
+
+        return Ok(());
+    }
+
+    let slug = final_build_info_response.unwrap().slug.unwrap().id;
+
+    let release_response = heroku_client(ctx).request(&releases::ReleaseCreate {
+        app_id: app_name.clone(),
+        params: releases::ReleaseCreateParams {
+            slug: String::from(slug),
+            description: Some(app_version.clone()),
+        },
+    });
+
+    msg.reply(
+        ctx,
+        match release_response {
+            Ok(_release) => format!(
+                "App {} version {} has successfully been released!",
+                &app_name, &app_version
+            ),
+            Err(e) => format!(
+                "An error occured when trying to release your app {}:\n{}",
+                app_name, e
+            ),
+        },
+    )?;
+
+    Ok(())
+}
+
 fn app_info_response(app: heroku_rs::endpoints::apps::App) -> String {
     format!(
         "\nApp ID: {}\nApp Name: {}\nReleased At: {}\nWeb URL: {}\n\n",
@@ -522,4 +676,11 @@ fn null_blocked_ips_config_var() -> HashMap<String, Option<String>> {
 fn blocked_ips_exist(config_vars: &HashMap<String, Option<String>>) -> bool {
     let exists = config_vars.get(&BLOCKED_IPS_ENV_VAR.to_string()).is_some();
     exists
+}
+
+fn build_response(app_name: String, build: &heroku_rs::endpoints::builds::Build) -> String {
+    format!(
+        "Build in progress for {} (this will take a few minutes)\nBuild ID is {}",
+        app_name, build.id,
+    )
 }
