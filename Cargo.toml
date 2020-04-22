@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 dotenv = "0.15"
-heroku_rs = { git = "https://github.com/bensadiku/heroku_rs"}
+heroku_rs = { version = "0.4.1" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serenity = "0.8"

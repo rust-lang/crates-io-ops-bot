@@ -34,7 +34,8 @@ use crate::authorizations::users::*;
     get_app_releases,
     rollback_app,
     block_ip,
-    unblock_ip
+    unblock_ip,
+    deploy_app
 )]
 struct General;
 
