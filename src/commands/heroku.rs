@@ -442,32 +442,10 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
 
     msg.reply(&ctx, build_response(&app_name, &build))?;
 
-    // Check status of the build
-    let mut build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
-        app_id: app_name.clone(),
-        build_id: build.clone().id,
-    });
+    let mut build_pending = true;
 
-    if build_info_response.is_err() {
-        msg.reply(
-            &ctx,
-            format!(
-                "An error occured when trying to get the status of build {} for {}",
-                &build.id, &app_name,
-            ),
-        )?;
-
-        return Ok(());
-    }
-
-    while build_info_response.unwrap().status == String::from("pending") {
-        msg.channel_id
-            .say(&ctx, format!("Build {} is still pending...", &build.id))?;
-
-        let duration = time::Duration::from_secs(15);
-        thread::sleep(duration);
-
-        build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
+    while build_pending == true {
+        let build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
             app_id: app_name.clone(),
             build_id: build.clone().id,
         });
@@ -477,11 +455,21 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
                 &ctx,
                 format!(
                     "An error occured when trying to get the status of build {} for {}",
-                    &build.id, &app_name
+                    &build.id, &app_name,
                 ),
             )?;
 
             return Ok(());
+        }
+
+        if build_info_response.unwrap().status == String::from("pending") {
+            msg.channel_id
+                .say(&ctx, format!("Build {} is still pending...", &build.id))?;
+
+            let duration = time::Duration::from_secs(15);
+            thread::sleep(duration);
+        } else {
+            build_pending = false
         }
     }
 
