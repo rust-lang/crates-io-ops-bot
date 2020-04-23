@@ -65,6 +65,7 @@ pub fn run(config: Config) {
     {
         let mut data = client.data.write();
         data.insert::<HerokuClientKey>(Arc::new(heroku_client_instance));
+        data.insert::<Config>(Arc::new(config.clone()));
     }
 
     client.with_framework(
