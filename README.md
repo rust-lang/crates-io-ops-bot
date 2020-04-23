@@ -177,6 +177,27 @@ Version: 3
 Status: succeeded
 ```
 
+**~deploy_app**
+
+If you would like to deploy your application, you can use this command:
+
+```
+you: ~deploy_app app_name link_to_tarball_of_code version_to_release
+```
+
+For example: 
+
+```
+~deploy_app testing-nell-app https://github.com/nellshamrell/testing-nell-app/archive/0.2.1.tar.gz 0.2.1
+```
+
+One way to generate the tarball link is to use [GitHub Releases](https://help.github.com/en/github/administering-a-repository/managing-releases-in-a-repository).
+
+This command will:
+* Create a build of the code contained in the tarball
+* Provide updates on the build while it is in progress (currently every 15 seconds)
+* Release the application as the version you specified
+
 **~rollback_app**
 
 If you would like to rollback your app to the code associated with a previous release of your app, you can do so with the ~rollback_app command.

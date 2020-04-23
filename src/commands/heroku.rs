@@ -401,7 +401,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
 
     let source_url = args
         .single::<String>()
-        .expect("You must include a link to the Github release tar file");
+        .expect("You must include a link to a tar file containing the code you want to deploy");
 
     let app_version = args
         .single::<String>()
@@ -430,7 +430,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             &ctx,
             format!(
                 "An error occured when trying to build {}:\n{:?}",
-                app_name.clone(),
+                &app_name,
                 build_create_response.err()
             ),
         )?;
@@ -440,7 +440,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
 
     let build = build_create_response.unwrap();
 
-    msg.reply(&ctx, build_response(app_name.clone(), &build))?;
+    msg.reply(&ctx, build_response(&app_name, &build))?;
 
     // Check status of the build
     let mut build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
@@ -453,8 +453,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             &ctx,
             format!(
                 "An error occured when trying to get the status of build {} for {}",
-                &build.id,
-                app_name.clone()
+                &build.id, &app_name,
             ),
         )?;
 
@@ -462,10 +461,8 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
     }
 
     while build_info_response.unwrap().status == String::from("pending") {
-        msg.channel_id.say(
-            &ctx,
-            format!("Build {} is still pending...", build.clone().id),
-        )?;
+        msg.channel_id
+            .say(&ctx, format!("Build {} is still pending...", &build.id))?;
 
         let duration = time::Duration::from_secs(15);
         thread::sleep(duration);
@@ -480,8 +477,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
                 &ctx,
                 format!(
                     "An error occured when trying to get the status of build {} for {}",
-                    &build.id,
-                    app_name.clone()
+                    &build.id, &app_name
                 ),
             )?;
 
@@ -493,8 +489,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         &ctx,
         format!(
             "Build {} is complete for {}, moving on to releasing the app",
-            &build.id,
-            app_name.clone()
+            &build.id, &app_name
         ),
     )?;
 
@@ -509,8 +504,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             &ctx,
             format!(
                 "Unable to get the final information for build {} for {}, cancelling release",
-                &build.id,
-                app_name.clone()
+                &build.id, &app_name
             ),
         )?;
 
@@ -678,7 +672,7 @@ fn blocked_ips_exist(config_vars: &HashMap<String, Option<String>>) -> bool {
     exists
 }
 
-fn build_response(app_name: String, build: &heroku_rs::endpoints::builds::Build) -> String {
+fn build_response(app_name: &str, build: &heroku_rs::endpoints::builds::Build) -> String {
     format!(
         "Build in progress for {} (this will take a few minutes)\nBuild ID is {}",
         app_name, build.id,
