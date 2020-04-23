@@ -189,13 +189,22 @@ For example:
 
 ```
 ~deploy_app testing-nell-app https://github.com/nellshamrell/testing-nell-app/archive/0.2.1.tar.gz 0.2.1
+crate-io-bot: @you Build in progress for testing-nell-app (this will take a few minutes)
+Build ID is a30c6830-7e47-47ce-9f8d-1a883e4a9beb
+Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
+Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
+Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
+Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
+Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
+@you: Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is complete for testing-nell-app, moving on to releasing the app
+@you: App testing-nell-app version 0.2.1 has successfully been released!
 ```
 
 One way to generate the tarball link is to use [GitHub Releases](https://help.github.com/en/github/administering-a-repository/managing-releases-in-a-repository).
 
 This command will:
 * Create a build of the code contained in the tarball
-* Provide updates on the build while it is in progress (currently every 15 seconds)
+* Provide updates on the build while it is in progress (this is configurable through the BUILD_CHECK_INTERVAL environmental variable)
 * Release the application as the version you specified
 
 **~rollback_app**
@@ -360,6 +369,20 @@ HEROKU_API_KEY="123abc"
 ```
 
 To use the Heroku API key in a CI/CD or production environment, make sure to set it wherever you define your environmental variables
+for that environment.
+
+### Setting up the Build Check Interval
+
+The ~deploy_app command kicks of a build of your application and periodically checks the build to see if it is still pending. Once it is no longer pending, it moves onto releasing the build. To configure the check interval for development and test environments, set this variable in your .env file
+
+This will set the build check interval to **5 seconds**
+
+**.env**
+```
+BUILD_CHECK_INTERVAL="5"
+```
+
+To use the build check interval in a CI/CD or production environment, make sure to set it wherever you define your environmental variables
 for that environment.
 
 ### Running locally
