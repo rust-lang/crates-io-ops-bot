@@ -13,6 +13,8 @@ use std::collections::HashSet;
 
 use std::{thread, time};
 
+use crate::config::Config;
+
 use crate::utilities::*;
 
 #[derive(Debug, Deserialize)]
@@ -466,7 +468,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             msg.channel_id
                 .say(&ctx, format!("Build {} is still pending...", &build.id))?;
 
-            let duration = time::Duration::from_secs(15);
+            let duration = time::Duration::from_secs(bot_config(&ctx).build_check_interval);
             thread::sleep(duration);
         } else {
             build_pending = false
@@ -605,6 +607,14 @@ fn heroku_client(ctx: &Context) -> std::sync::Arc<heroku_rs::framework::HttpApiC
         .read()
         .get::<HerokuClientKey>()
         .expect("Expected Heroku Client Key")
+        .clone()
+}
+
+fn bot_config(ctx: &Context) -> std::sync::Arc<Config> {
+    ctx.data
+        .read()
+        .get::<Config>()
+        .expect("Expected Config")
         .clone()
 }
 
