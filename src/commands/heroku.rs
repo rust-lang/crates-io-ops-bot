@@ -409,16 +409,10 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .single::<String>()
         .expect("You must include an app version");
 
-    let buildpack_params = heroku_rs::endpoints::builds::post::BuildpackParam {
-        url: String::from("https://github.com/emk/heroku-buildpack-rust"),
-        name: String::from("emk/rust"),
-    };
-
-    // Create a build
     let build_create_response = heroku_client(ctx).request(&builds::BuildCreate {
         app_id: app_name.clone(),
         params: builds::BuildCreateParams {
-            buildpacks: Some(vec![buildpack_params]),
+            buildpacks: None,
             source_blob: builds::SourceBlobParam {
                 checksum: None,
                 url: source_url,
@@ -475,19 +469,13 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         }
     }
 
-    msg.reply(
-        &ctx,
-        format!(
-            "Build {} is complete for {}, moving on to releasing the app",
-            &build.id, &app_name
-        ),
-    )?;
-
     // Release the new build
     let final_build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
         app_id: app_name.clone(),
         build_id: build.clone().id,
     });
+
+    println!("final_build_info_response {:?}", final_build_info_response);
 
     if final_build_info_response.is_err() {
         msg.reply(
@@ -501,7 +489,21 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         return Ok(());
     }
 
-    let slug = final_build_info_response.unwrap().slug.unwrap().id;
+    let final_build_info = final_build_info_response.unwrap();
+
+    if final_build_info.status != "succeeded" {
+        msg.reply(
+            &ctx,
+            format!(
+                "There was a problem with build {} for {}, cancelling release. Please check the build output.",
+                &build.id, &app_name
+            ),
+        )?;
+
+        return Ok(());
+    }
+
+    let slug = final_build_info.slug.unwrap().id;
 
     let release_response = heroku_client(ctx).request(&releases::ReleaseCreate {
         app_id: app_name.clone(),
