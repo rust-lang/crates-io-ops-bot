@@ -13,6 +13,10 @@ mod tests {
             String::from("123"),
             String::from("123,456"),
             String::from("456abc"),
+            String::from("5"),
+            String::from("github_org"),
+            String::from("github_repo"),
+            String::from("789xyz"),
         )
     }
 
