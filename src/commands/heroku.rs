@@ -17,6 +17,10 @@ use crate::config::Config;
 
 use crate::utilities::*;
 
+use github_rs::client::{Executor, Github};
+
+use serde_json::Value;
+
 #[derive(Debug, Deserialize)]
 struct HerokuApp {
     id: String,
@@ -401,13 +405,48 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .single::<String>()
         .expect("You must include an app name");
 
-    let source_url = args
-        .single::<String>()
-        .expect("You must include a link to a tar file containing the code you want to deploy");
-
     let app_version = args
         .single::<String>()
         .expect("You must include an app version");
+
+    let git_ref = args
+        .single::<String>()
+        .expect("You must include a git ref to deploy");
+
+    let github_client = Github::new(bot_config(ctx).github_token.to_string());
+
+    if github_client.is_err() {
+        msg.reply(
+            &ctx,
+            format!(
+                "An error occured when trying to contact GitHub with your GitHub token:\n{:?}",
+                github_client.err()
+            ),
+        )?;
+
+        return Ok(());
+    }
+
+    let github_response = github_client
+        .unwrap()
+        .get()
+        .custom_endpoint(&github_ref_endpoint(bot_config(ctx), git_ref))
+        .execute::<Value>();
+
+    if github_response.is_err() {
+        msg.reply(
+            &ctx,
+            format!(
+                "An error occured when trying to get commit info for {}/{}:\n{:?}",
+                bot_config(ctx).github_org,
+                bot_config(ctx).github_repo,
+                github_response.as_ref().err()
+            ),
+        )?;
+    }
+
+    let git_sha_value = &github_response.unwrap().2.unwrap()["sha"];
+    let git_sha = git_sha_value.as_str().unwrap();
 
     let build_create_response = heroku_client(ctx).request(&builds::BuildCreate {
         app_id: app_name.clone(),
@@ -415,7 +454,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             buildpacks: None,
             source_blob: builds::SourceBlobParam {
                 checksum: None,
-                url: source_url,
+                url: source_url(&ctx, &git_sha.to_string()),
                 version: Some(app_version.clone()),
             },
         },
@@ -676,5 +715,21 @@ fn build_response(app_name: &str, build: &heroku_rs::endpoints::builds::Build) -
     format!(
         "Build in progress for {} (this will take a few minutes)\nBuild ID is {}",
         app_name, build.id,
+    )
+}
+
+fn source_url(ctx: &Context, git_sha: &str) -> String {
+    format!(
+        "https://codeload.github.com/{}/{}/tar.gz/{}",
+        bot_config(ctx).github_org,
+        bot_config(ctx).github_repo,
+        git_sha,
+    )
+}
+
+fn github_ref_endpoint(config: std::sync::Arc<Config>, git_ref: String) -> String {
+    format!(
+        "repos/{}/{}/commits/{}",
+        config.github_org, config.github_repo, git_ref
     )
 }
