@@ -371,6 +371,22 @@ HEROKU_API_KEY="123abc"
 To use the Heroku API key in a CI/CD or production environment, make sure to set it wherever you define your environmental variables
 for that environment.
 
+### Setting up the GitHub Configuration
+
+The ~deploy_app command requires three GitHub related environmental variables to be set. This includes your GitHub org, the repo you want to deploy from, and a [GitHub Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line).
+
+
+To configure these variables for development and test environments, set these variables in your .env file.
+
+**.env**
+```
+GITHUB_ORG="your-github-org"
+GITHUB_REPO="your-github-repo"
+GITHUB_TOKEN="your-github-personal-access-token"
+```
+To use these variables in a CI/CD or production environment, make sure to set them wherever you define your environmental variables
+for that environment.
+
 ### Setting up the Build Check Interval
 
 The ~deploy_app command kicks of a build of your application and periodically checks the build to see if it is still pending. Once it is no longer pending, it moves onto releasing the build. To configure the check interval for development and test environments, set this variable in your .env file
