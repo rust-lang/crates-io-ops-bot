@@ -179,16 +179,16 @@ Status: succeeded
 
 **~deploy_app**
 
-If you would like to deploy your application, you can use this command:
+If you would like to deploy your application, you can use this command (you can pass in the branch name, the commit id, or the full sha for the commit you want to deploy)
 
 ```
-you: ~deploy_app app_name link_to_tarball_of_code version_to_release
+you: ~deploy_app app_name branch_commit_id_or_sha version
 ```
 
 For example: 
 
 ```
-~deploy_app testing-nell-app https://github.com/nellshamrell/testing-nell-app/archive/0.2.1.tar.gz 0.2.1
+~deploy_app testing-nell-app master 0.2.1
 crate-io-bot: @you Build in progress for testing-nell-app (this will take a few minutes)
 Build ID is a30c6830-7e47-47ce-9f8d-1a883e4a9beb
 Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
@@ -200,10 +200,8 @@ Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
 @you: App testing-nell-app version 0.2.1 has successfully been released!
 ```
 
-One way to generate the tarball link is to use [GitHub Releases](https://help.github.com/en/github/administering-a-repository/managing-releases-in-a-repository).
-
 This command will:
-* Create a build of the code contained in the tarball
+* Create a build of the code
 * Provide updates on the build while it is in progress (this is configurable through the BUILD_CHECK_INTERVAL environmental variable)
 * Release the application as the version you specified
 
