@@ -399,15 +399,11 @@ pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandR
 }
 
 #[command]
-#[num_args(3)]
+#[num_args(2)]
 pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let app_name = args
         .single::<String>()
         .expect("You must include an app name");
-
-    let app_version = args
-        .single::<String>()
-        .expect("You must include an app version");
 
     let git_ref = args
         .single::<String>()
@@ -455,7 +451,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             source_blob: builds::SourceBlobParam {
                 checksum: None,
                 url: source_url(&ctx, &git_sha.to_string()),
-                version: Some(app_version.clone()),
+                version: Some(git_sha.to_string()),
             },
         },
     });
@@ -548,7 +544,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         app_id: app_name.clone(),
         params: releases::ReleaseCreateParams {
             slug: String::from(slug),
-            description: Some(app_version.clone()),
+            description: Some(git_sha.to_string()),
         },
     });
 
@@ -556,8 +552,8 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         ctx,
         match release_response {
             Ok(_release) => format!(
-                "App {} version {} has successfully been released!",
-                &app_name, &app_version
+                "App {} commit {} has successfully been released!",
+                &app_name, git_sha.to_string(),
             ),
             Err(e) => format!(
                 "An error occured when trying to release your app {}:\n{}",
