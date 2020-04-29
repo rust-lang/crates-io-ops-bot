@@ -19,14 +19,17 @@ use crate::utilities::*;
 
 use github_rs::client::{Executor, Github};
 
-use serde_json::Value;
-
 #[derive(Debug, Deserialize)]
 struct HerokuApp {
     id: String,
     name: String,
     released_at: String,
     web_url: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct GitHubResponse {
+    sha: String,
 }
 
 // Get app by name or id
@@ -427,7 +430,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .unwrap()
         .get()
         .custom_endpoint(&github_ref_endpoint(bot_config(ctx), git_ref))
-        .execute::<Value>();
+        .execute::<GitHubResponse>();
 
     if github_response.is_err() {
         msg.reply(
@@ -441,8 +444,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         )?;
     }
 
-    let git_sha_value = &github_response.unwrap().2.unwrap()["sha"];
-    let git_sha = git_sha_value.as_str().unwrap();
+    let git_sha = github_response.unwrap().2.unwrap().sha;
 
     let build_create_response = heroku_client(ctx).request(&builds::BuildCreate {
         app_id: app_name.clone(),
@@ -450,7 +452,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             buildpacks: None,
             source_blob: builds::SourceBlobParam {
                 checksum: None,
-                url: source_url(&ctx, &git_sha.to_string()),
+                url: source_url(&ctx, &git_sha),
                 version: Some(git_sha.to_string()),
             },
         },
@@ -553,7 +555,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         match release_response {
             Ok(_release) => format!(
                 "App {} commit {} has successfully been released!",
-                &app_name, git_sha.to_string(),
+                &app_name, git_sha,
             ),
             Err(e) => format!(
                 "An error occured when trying to release your app {}:\n{}",
