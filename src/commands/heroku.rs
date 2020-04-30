@@ -17,7 +17,8 @@ use crate::config::Config;
 
 use crate::utilities::*;
 
-use github_rs::client::{Executor, Github};
+use reqwest::header::{self, HeaderMap, HeaderValue};
+use reqwest::blocking::Client as reqwest_client;
 
 #[derive(Debug, Deserialize)]
 struct HerokuApp {
@@ -30,6 +31,36 @@ struct HerokuApp {
 #[derive(Debug, Deserialize)]
 struct GitHubResponse {
     sha: String,
+}
+
+
+#[derive(Debug)]
+struct GitHubClient {
+   client: reqwest_client,
+   headers: HeaderMap,
+}
+
+impl GitHubClient {
+    pub fn new(auth_token: String) -> Self {
+        let github_client = reqwest_client::new();
+
+        let mut headers = HeaderMap::new();
+        let accept = HeaderValue::from_str("application/vnd.github.v3+json");
+        headers.insert(header::ACCEPT, accept.unwrap());
+
+        let auth = HeaderValue::from_str(&format!("token {}", auth_token));
+        headers.insert(header::AUTHORIZATION, auth.unwrap());
+
+        // Required for the GitHub API
+        // https://developer.github.com/v3/#user-agent-required
+        let useragent = HeaderValue::from_str("rust-lang/crates-io-ops-bot");
+        headers.insert(header::USER_AGENT, useragent.unwrap());
+
+        GitHubClient {
+            client: github_client,
+            headers: headers,
+        }
+    }
 }
 
 // Get app by name or id
@@ -412,25 +443,14 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .single::<String>()
         .expect("You must include a git ref to deploy");
 
-    let github_client = Github::new(bot_config(ctx).github_token.to_string());
+    let new_github_client = GitHubClient::new(bot_config(ctx).github_token.to_string());
 
-    if github_client.is_err() {
-        msg.reply(
-            &ctx,
-            format!(
-                "An error occured when trying to contact GitHub with your GitHub token:\n{:?}",
-                github_client.err()
-            ),
-        )?;
+    let github_request = new_github_client
+        .client
+        .get(&commit_info_url(ctx, git_ref))
+        .headers(new_github_client.headers.clone());
 
-        return Ok(());
-    }
-
-    let github_response = github_client
-        .unwrap()
-        .get()
-        .custom_endpoint(&github_ref_endpoint(bot_config(ctx), git_ref))
-        .execute::<GitHubResponse>();
+    let github_response = github_request.send();
 
     if github_response.is_err() {
         msg.reply(
@@ -444,7 +464,11 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         )?;
     }
 
-    let git_sha = github_response.unwrap().2.unwrap().sha;
+    let response_text = github_response.unwrap().text().unwrap();
+
+    let github_json: GitHubResponse = serde_json::from_str(&response_text).unwrap();
+
+    let git_sha = github_json.sha;
 
     let build_create_response = heroku_client(ctx).request(&builds::BuildCreate {
         app_id: app_name.clone(),
@@ -511,8 +535,6 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         app_id: app_name.clone(),
         build_id: build.clone().id,
     });
-
-    println!("final_build_info_response {:?}", final_build_info_response);
 
     if final_build_info_response.is_err() {
         msg.reply(
@@ -716,18 +738,19 @@ fn build_response(app_name: &str, build: &heroku_rs::endpoints::builds::Build) -
     )
 }
 
+fn commit_info_url(ctx: &Context, git_ref: String)  -> String {
+    format!("https://api.github.com/repos/{}/{}/commits/{}",
+        bot_config(ctx).github_org,
+        bot_config(ctx).github_repo,
+        git_ref
+    )
+}
+
 fn source_url(ctx: &Context, git_sha: &str) -> String {
     format!(
         "https://codeload.github.com/{}/{}/tar.gz/{}",
         bot_config(ctx).github_org,
         bot_config(ctx).github_repo,
         git_sha,
-    )
-}
-
-fn github_ref_endpoint(config: std::sync::Arc<Config>, git_ref: String) -> String {
-    format!(
-        "repos/{}/{}/commits/{}",
-        config.github_org, config.github_repo, git_ref
     )
 }
