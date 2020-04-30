@@ -17,8 +17,8 @@ use crate::config::Config;
 
 use crate::utilities::*;
 
-use reqwest::header::{self, HeaderMap, HeaderValue};
 use reqwest::blocking::Client as reqwest_client;
+use reqwest::header::{self, HeaderMap, HeaderValue};
 
 #[derive(Debug, Deserialize)]
 struct HerokuApp {
@@ -33,11 +33,10 @@ struct GitHubResponse {
     sha: String,
 }
 
-
 #[derive(Debug)]
 struct GitHubClient {
-   client: reqwest_client,
-   headers: HeaderMap,
+    client: reqwest_client,
+    headers: HeaderMap,
 }
 
 impl GitHubClient {
@@ -738,8 +737,9 @@ fn build_response(app_name: &str, build: &heroku_rs::endpoints::builds::Build) -
     )
 }
 
-fn commit_info_url(ctx: &Context, git_ref: String)  -> String {
-    format!("https://api.github.com/repos/{}/{}/commits/{}",
+fn commit_info_url(ctx: &Context, git_ref: String) -> String {
+    format!(
+        "https://api.github.com/repos/{}/{}/commits/{}",
         bot_config(ctx).github_org,
         bot_config(ctx).github_repo,
         git_ref
