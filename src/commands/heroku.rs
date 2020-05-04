@@ -70,30 +70,22 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
         .single::<String>()
         .expect("You must include an app name");
 
-    let app_resp = heroku_client(ctx).request(&apps::AppDetails {
+    let app = heroku_client(ctx).request(&apps::AppDetails {
         app_id: app_name.clone(),
-    });
+    })?;
+
 
     msg.reply(
         &ctx,
-        match app_resp {
-            Ok(app) => app_info_response(app),
-            Err(e) => format!("An error occurred when fetching your Heroku app:\n{}", e),
-        },
+        app_info_response(app)
     )?;
 
-    let app_formations_resp =
-        heroku_client(ctx).request(&formations::FormationList { app_id: app_name });
+    let formations =
+        heroku_client(ctx).request(&formations::FormationList { app_id: app_name })?;
 
     msg.reply(
-        ctx,
-        match app_formations_resp {
-            Ok(formations) => app_formations_response(formations),
-            Err(e) => format!(
-                "An error occured when fetching your Heroku app formation info:\n{}",
-                e
-            ),
-        },
+        &ctx,
+        app_formations_response(formations)
     )?;
 
     Ok(())
@@ -124,20 +116,14 @@ pub fn update_app_config(ctx: &mut Context, msg: &Message, mut args: Args) -> Co
         let mut config_var = HashMap::new();
         config_var.insert(config_var_key, config_var_value);
 
-        let response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
+        let _response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
             app_id: &app_name,
             params: config_var.clone(),
-        });
+        })?;
 
         msg.reply(
             ctx,
-            match response {
-                Ok(_response) => format!("Config Var has been updated {:?}", config_var),
-                Err(e) => format!(
-                    "An error occured when trying to update your config var:\n{}",
-                    e
-                ),
-            },
+            format!("Config Var has been updated {:?}", config_var),
         )?;
     } else {
         msg.reply(
@@ -165,32 +151,21 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
         .single::<String>()
         .expect("You must include an IP address to block");
 
-    let current_config_vars = heroku_app_config_vars(&ctx, &app_name);
-
+    let current_config_vars = heroku_client(ctx)
+        .request(&config_vars::AppConfigVarDetails { app_id: &app_name })?;
+ 
     // If the BLOCKED_IPS environmental variable does not
     // currently exist, create it
     if !blocked_ips_exist(&current_config_vars) {
-        let response = heroku_client(&ctx).request(&config_vars::AppConfigVarUpdate {
+        let _response = heroku_client(&ctx).request(&config_vars::AppConfigVarUpdate {
             app_id: &app_name,
             params: empty_config_var(),
-        });
-
-        let response_err = response.is_err();
+        })?;
 
         msg.reply(
             &ctx,
-            match response {
-                Ok(_response) => format!("The {} environmental variable has been created for {}", BLOCKED_IPS_ENV_VAR, app_name),
-                Err(e) => format!(
-                    "The {} environmental variable does not current exist for {}.\n There was an error when trying to create it: {}",
-                    BLOCKED_IPS_ENV_VAR, app_name, e
-                ),
-            },
+            format!("The {} environmental variable has been created for {}", BLOCKED_IPS_ENV_VAR, app_name),
         )?;
-
-        if response_err {
-            return Ok(());
-        }
     }
 
     let mut blocked_ips_set = current_blocked_ip_addresses(current_config_vars);
@@ -205,20 +180,14 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
 
         let updated_config_var = blocked_ips_config_var(blocked_ips_set);
 
-        let response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
+        let _response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
             app_id: &app_name,
             params: updated_config_var,
-        });
+        })?;
 
         msg.reply(
             ctx,
-            match response {
-                Ok(_response) => format!("IP address {} has been blocked", ip_addr.clone()),
-                Err(e) => format!(
-                    "An error occurred when trying to block the IP address: {}\n{}",
-                    ip_addr, e
-                ),
-            },
+            format!("IP address {} has been blocked", ip_addr.clone()),
         )?;
     };
 
@@ -236,8 +205,9 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .single::<String>()
         .expect("You must include an IP address to unblock");
 
-    let current_config_vars = heroku_app_config_vars(&ctx, &app_name);
-
+    let current_config_vars = heroku_client(ctx)
+        .request(&config_vars::AppConfigVarDetails { app_id: &app_name })?;
+ 
     if !blocked_ips_exist(&current_config_vars) {
         msg.reply(
             &ctx,
@@ -260,39 +230,27 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         // Removes config variable from the Heroku application
         // if there are no more blocked ip addresses
         if blocked_ips_set.is_empty() {
-            let response = heroku_client(ctx).request(&config_vars::AppConfigVarDelete {
+            let _response = heroku_client(ctx).request(&config_vars::AppConfigVarDelete {
                 app_id: &app_name,
                 params: null_blocked_ips_config_var(),
-            });
+            })?;
 
             msg.reply(
                 ctx,
-                match response {
-                    Ok(_response) => format!(
-                        "IP address {} has been unblocked, there are now no unblocked IP addresses",
-                        ip_addr.clone()
-                    ),
-                    Err(e) => format!(
-                        "An error occurred when trying to unblock the IP address: {}\n{}",
-                        ip_addr, e
-                    ),
-                },
+                format!(
+                    "IP address {} has been unblocked, there are now no unblocked IP addresses",
+                    ip_addr.clone()
+                ),
             )?;
         } else {
-            let response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
+            let _response = heroku_client(ctx).request(&config_vars::AppConfigVarUpdate {
                 app_id: &app_name,
                 params: blocked_ips_config_var(blocked_ips_set),
-            });
+            })?;
 
             msg.reply(
                 ctx,
-                match response {
-                    Ok(_response) => format!("IP address {} has been unblocked", ip_addr.clone()),
-                    Err(e) => format!(
-                        "An error occurred when trying to unblock the IP address: {}\n{}",
-                        ip_addr, e
-                    ),
-                },
+                format!("IP address {} has been unblocked", ip_addr.clone()),
             )?;
         };
     }
@@ -315,24 +273,18 @@ pub fn scale_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRes
 
     let size = args.single::<String>().expect("You must include a size");
 
-    let response = heroku_client(ctx).request(&formations::FormationUpdate {
+    let formation = heroku_client(ctx).request(&formations::FormationUpdate {
         app_id: app_name.clone(),
         formation_id: formation_name,
         params: formations::FormationUpdateParams {
             quantity: Some(quantity),
             size: Some(size),
         },
-    });
+    })?;
 
     msg.reply(
         ctx,
-        match response {
-            Ok(formation) => formation_updated_response(app_name, formation),
-            Err(e) => format!(
-                "An error occured when trying to scale your app formation:\n{}",
-                e
-            ),
-        },
+        formation_updated_response(app_name, formation),
     )?;
 
     Ok(())
@@ -346,14 +298,11 @@ pub fn get_app_releases(ctx: &mut Context, msg: &Message, mut args: Args) -> Com
         .single::<String>()
         .expect("You must include an app name");
 
-    let response = heroku_client(ctx).request(&releases::ReleaseList { app_id: app_name });
+    let releases = heroku_client(ctx).request(&releases::ReleaseList { app_id: app_name })?;
 
     msg.reply(
         ctx,
-        match response {
-            Ok(releases) => releases_response(releases),
-            Err(e) => format!("An error occured when fetching your app's releases:\n{}", e),
-        },
+        releases_response(releases),
     )?;
 
     Ok(())
@@ -370,22 +319,19 @@ pub fn rollback_app(ctx: &mut Context, msg: &Message, mut args: Args) -> Command
         .single::<String>()
         .expect("You must include the version to roll back to");
 
-    let response = heroku_client(ctx).request(&releases::ReleaseRollback {
+    let _response = heroku_client(ctx).request(&releases::ReleaseRollback {
         app_id: app_name.clone(),
         params: releases::ReleaseRollbackParams {
             release: version_to_rollback_to.clone(),
         },
-    });
+    })?;
 
     msg.reply(
         ctx,
-        match response {
-            Ok(_response) => format!(
-                "App {} was successfully rolled back to the code at {}",
-                app_name, version_to_rollback_to
-            ),
-            Err(e) => format!("An error occured when trying to roll back your app:\n{}", e),
-        },
+        format!(
+            "App {} was successfully rolled back to the code at {}",
+            app_name, version_to_rollback_to
+        ),
     )?;
 
     Ok(())
@@ -393,14 +339,11 @@ pub fn rollback_app(ctx: &mut Context, msg: &Message, mut args: Args) -> Command
 
 #[command]
 pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
-    let response = heroku_client(ctx).request(&apps::AppList {});
+    let apps = heroku_client(ctx).request(&apps::AppList {})?;
 
     msg.reply(
         ctx,
-        match response {
-            Ok(apps) => apps_response(apps),
-            Err(e) => format!("An error occured when fetching your Heroku apps:\n{}", e),
-        },
+        apps_response(apps),
     )?;
 
     Ok(())
@@ -413,19 +356,13 @@ pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandR
         .single::<String>()
         .expect("You must include an app name");
 
-    let response = heroku_client(ctx).request(&dynos::DynoAllRestart {
+    let _response = heroku_client(ctx).request(&dynos::DynoAllRestart {
         app_id: app_name.clone(),
-    });
+    })?;
 
     msg.reply(
         ctx,
-        match response {
-            Ok(_response) => format!("All dynos in {} have been restarted.", app_name),
-            Err(e) => format!(
-                "An error occured when trying to restart your Heroku app:\n{}",
-                e
-            ),
-        },
+        format!("All dynos in {} have been restarted.", app_name),
     )?;
 
     Ok(())
@@ -449,27 +386,15 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .get(&commit_info_url(ctx, git_ref))
         .headers(new_github_client.headers.clone());
 
-    let github_response = github_request.send().and_then(|res| res.error_for_status());
+    let github_response = github_request.send().and_then(|res| res.error_for_status())?;
 
-    if github_response.is_err() {
-        msg.reply(
-            &ctx,
-            format!(
-                "An error occured when trying to get commit info for {}/{}:\n{:?}",
-                bot_config(ctx).github_org,
-                bot_config(ctx).github_repo,
-                github_response.as_ref().err()
-            ),
-        )?;
-    }
-
-    let response_text = github_response.unwrap().text().unwrap();
+    let response_text = github_response.text().unwrap();
 
     let github_json: GitHubResponse = serde_json::from_str(&response_text).unwrap();
 
     let git_sha = github_json.sha;
 
-    let build_create_response = heroku_client(ctx).request(&builds::BuildCreate {
+    let build = heroku_client(ctx).request(&builds::BuildCreate {
         app_id: app_name.clone(),
         params: builds::BuildCreateParams {
             buildpacks: None,
@@ -479,46 +404,19 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
                 version: Some(git_sha.to_string()),
             },
         },
-    });
-
-    if build_create_response.is_err() {
-        msg.reply(
-            &ctx,
-            format!(
-                "An error occured when trying to build {}:\n{:?}",
-                &app_name,
-                build_create_response.err()
-            ),
-        )?;
-
-        return Ok(());
-    }
-
-    let build = build_create_response.unwrap();
+    })?;
 
     msg.reply(&ctx, build_response(&app_name, &build))?;
 
     let mut build_pending = true;
 
     while build_pending == true {
-        let build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
+        let build = heroku_client(ctx).request(&builds::BuildDetails {
             app_id: app_name.clone(),
             build_id: build.clone().id,
-        });
+        })?;
 
-        if build_info_response.is_err() {
-            msg.reply(
-                &ctx,
-                format!(
-                    "An error occured when trying to get the status of build {} for {}",
-                    &build.id, &app_name,
-                ),
-            )?;
-
-            return Ok(());
-        }
-
-        if build_info_response.unwrap().status == String::from("pending") {
+        if build.status == String::from("pending") {
             msg.channel_id
                 .say(&ctx, format!("Build {} is still pending...", &build.id))?;
 
@@ -563,26 +461,20 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
 
     let slug = final_build_info.slug.unwrap().id;
 
-    let release_response = heroku_client(ctx).request(&releases::ReleaseCreate {
+    let _release_response = heroku_client(ctx).request(&releases::ReleaseCreate {
         app_id: app_name.clone(),
         params: releases::ReleaseCreateParams {
             slug: String::from(slug),
             description: Some(git_sha.to_string()),
         },
-    });
+    })?;
 
     msg.reply(
         ctx,
-        match release_response {
-            Ok(_release) => format!(
-                "App {} commit {} has successfully been released!",
-                &app_name, git_sha,
-            ),
-            Err(e) => format!(
-                "An error occured when trying to release your app {}:\n{}",
-                app_name, e
-            ),
-        },
+        format!(
+            "App {} commit {} has successfully been released!",
+            &app_name, git_sha,
+        ),
     )?;
 
     Ok(())
@@ -676,13 +568,6 @@ fn bot_config(ctx: &Context) -> std::sync::Arc<Config> {
         .get::<Config>()
         .expect("Expected Config")
         .clone()
-}
-
-fn heroku_app_config_vars(ctx: &Context, app_name: &str) -> HashMap<String, Option<String>> {
-    let config_var_list = heroku_client(ctx)
-        .request(&config_vars::AppConfigVarDetails { app_id: &app_name })
-        .unwrap();
-    config_var_list
 }
 
 fn block_ips_value(config_vars: HashMap<String, Option<String>>) -> String {
