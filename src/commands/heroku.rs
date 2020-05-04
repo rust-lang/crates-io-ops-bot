@@ -441,7 +441,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .get(&commit_info_url(ctx, git_ref))
         .headers(new_github_client.headers.clone());
 
-    let github_response = github_request.send();
+    let github_response = github_request.send().and_then(|res| res.error_for_status());
 
     if github_response.is_err() {
         msg.reply(
