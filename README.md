@@ -177,6 +177,34 @@ Version: 3
 Status: succeeded
 ```
 
+**~deploy_app**
+
+If you would like to deploy your application, you can use this command (you can pass in the branch name, the commit id, or the full sha for the commit you want to deploy)
+
+```
+you: ~deploy_app app_name branch_commit_id_or_sha
+```
+
+For example: 
+
+```
+~deploy_app testing-nell-app master
+crate-io-bot: @you Build in progress for testing-nell-app (this will take a few minutes)
+Build ID is a30c6830-7e47-47ce-9f8d-1a883e4a9beb
+Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
+Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
+Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
+Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
+Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
+@you: Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is complete for testing-nell-app, moving on to releasing the app
+@you: App testing-nell-app version 0.2.1 has successfully been released!
+```
+
+This command will:
+* Create a build of the code
+* Provide updates on the build while it is in progress (this is configurable through the BUILD_CHECK_INTERVAL environmental variable)
+* Release the application as the version you specified
+
 **~rollback_app**
 
 If you would like to rollback your app to the code associated with a previous release of your app, you can do so with the ~rollback_app command.
@@ -339,6 +367,36 @@ HEROKU_API_KEY="123abc"
 ```
 
 To use the Heroku API key in a CI/CD or production environment, make sure to set it wherever you define your environmental variables
+for that environment.
+
+### Setting up the GitHub Configuration
+
+The ~deploy_app command requires three GitHub related environmental variables to be set. This includes your GitHub org, the repo you want to deploy from, and a [GitHub Personal Access Token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line).
+
+
+To configure these variables for development and test environments, set these variables in your .env file.
+
+**.env**
+```
+GITHUB_ORG="your-github-org"
+GITHUB_REPO="your-github-repo"
+GITHUB_TOKEN="your-github-personal-access-token"
+```
+To use these variables in a CI/CD or production environment, make sure to set them wherever you define your environmental variables
+for that environment.
+
+### Setting up the Build Check Interval
+
+The ~deploy_app command kicks of a build of your application and periodically checks the build to see if it is still pending. Once it is no longer pending, it moves onto releasing the build. To configure the check interval for development and test environments, set this variable in your .env file
+
+This will set the build check interval to **5 seconds**
+
+**.env**
+```
+BUILD_CHECK_INTERVAL="5"
+```
+
+To use the build check interval in a CI/CD or production environment, make sure to set it wherever you define your environmental variables
 for that environment.
 
 ### Running locally

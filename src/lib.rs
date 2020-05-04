@@ -34,7 +34,8 @@ use crate::authorizations::users::*;
     get_app_releases,
     rollback_app,
     block_ip,
-    unblock_ip
+    unblock_ip,
+    deploy_app
 )]
 struct General;
 
@@ -64,6 +65,7 @@ pub fn run(config: Config) {
     {
         let mut data = client.data.write();
         data.insert::<HerokuClientKey>(Arc::new(heroku_client_instance));
+        data.insert::<Config>(Arc::new(config.clone()));
     }
 
     client.with_framework(
