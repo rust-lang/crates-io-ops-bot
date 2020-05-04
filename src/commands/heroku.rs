@@ -151,8 +151,9 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
         .single::<String>()
         .expect("You must include an IP address to block");
 
-    let current_config_vars = heroku_app_config_vars(&ctx, &app_name);
-
+    let current_config_vars = heroku_client(ctx)
+        .request(&config_vars::AppConfigVarDetails { app_id: &app_name })?;
+ 
     // If the BLOCKED_IPS environmental variable does not
     // currently exist, create it
     if !blocked_ips_exist(&current_config_vars) {
@@ -204,8 +205,9 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .single::<String>()
         .expect("You must include an IP address to unblock");
 
-    let current_config_vars = heroku_app_config_vars(&ctx, &app_name);
-
+    let current_config_vars = heroku_client(ctx)
+        .request(&config_vars::AppConfigVarDetails { app_id: &app_name })?;
+ 
     if !blocked_ips_exist(&current_config_vars) {
         msg.reply(
             &ctx,
@@ -566,13 +568,6 @@ fn bot_config(ctx: &Context) -> std::sync::Arc<Config> {
         .get::<Config>()
         .expect("Expected Config")
         .clone()
-}
-
-fn heroku_app_config_vars(ctx: &Context, app_name: &str) -> HashMap<String, Option<String>> {
-    let config_var_list = heroku_client(ctx)
-        .request(&config_vars::AppConfigVarDetails { app_id: &app_name })
-        .unwrap();
-    config_var_list
 }
 
 fn block_ips_value(config_vars: HashMap<String, Option<String>>) -> String {
