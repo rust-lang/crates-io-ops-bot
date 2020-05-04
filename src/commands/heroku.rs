@@ -478,6 +478,163 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
     Ok(())
 }
 
+#[command]
+#[num_args(2)]
+pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
+    let app_name = args
+        .single::<String>()
+        .expect("You must include an app name");
+
+    let git_ref = args
+        .single::<String>()
+        .expect("You must include a git ref to deploy");
+
+    let new_github_client = GitHubClient::new(bot_config(ctx).github_token.to_string());
+
+    let github_request = new_github_client
+        .client
+        .get(&commit_info_url(ctx, git_ref))
+        .headers(new_github_client.headers.clone());
+
+    let github_response = github_request.send().and_then(|res| res.error_for_status());
+
+    if github_response.is_err() {
+        msg.reply(
+            &ctx,
+            format!(
+                "An error occured when trying to get commit info for {}/{}:\n{:?}",
+                bot_config(ctx).github_org,
+                bot_config(ctx).github_repo,
+                github_response.as_ref().err()
+            ),
+        )?;
+    }
+
+    let response_text = github_response.unwrap().text().unwrap();
+
+    let github_json: GitHubResponse = serde_json::from_str(&response_text).unwrap();
+
+    let git_sha = github_json.sha;
+
+    let build_create_response = heroku_client(ctx).request(&builds::BuildCreate {
+        app_id: app_name.clone(),
+        params: builds::BuildCreateParams {
+            buildpacks: None,
+            source_blob: builds::SourceBlobParam {
+                checksum: None,
+                url: source_url(&ctx, &git_sha),
+                version: Some(git_sha.to_string()),
+            },
+        },
+    });
+
+    if build_create_response.is_err() {
+        msg.reply(
+            &ctx,
+            format!(
+                "An error occured when trying to build {}:\n{:?}",
+                &app_name,
+                build_create_response.err()
+            ),
+        )?;
+
+        return Ok(());
+    }
+
+    let build = build_create_response.unwrap();
+
+    msg.reply(&ctx, build_response(&app_name, &build))?;
+
+    let mut build_pending = true;
+
+    while build_pending == true {
+        let build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
+            app_id: app_name.clone(),
+            build_id: build.clone().id,
+        });
+
+        if build_info_response.is_err() {
+            msg.reply(
+                &ctx,
+                format!(
+                    "An error occured when trying to get the status of build {} for {}",
+                    &build.id, &app_name,
+                ),
+            )?;
+
+            return Ok(());
+        }
+
+        if build_info_response.unwrap().status == String::from("pending") {
+            msg.channel_id
+                .say(&ctx, format!("Build {} is still pending...", &build.id))?;
+
+            let duration = time::Duration::from_secs(bot_config(&ctx).build_check_interval);
+            thread::sleep(duration);
+        } else {
+            build_pending = false
+        }
+    }
+
+    // Release the new build
+    let final_build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
+        app_id: app_name.clone(),
+        build_id: build.clone().id,
+    });
+
+    if final_build_info_response.is_err() {
+        msg.reply(
+            &ctx,
+            format!(
+                "Unable to get the final information for build {} for {}, cancelling release",
+                &build.id, &app_name
+            ),
+        )?;
+
+        return Ok(());
+    }
+
+    let final_build_info = final_build_info_response.unwrap();
+
+    if final_build_info.status != "succeeded" {
+        msg.reply(
+            &ctx,
+            format!(
+                "There was a problem with build {} for {}, cancelling release. Please check the build output.",
+                &build.id, &app_name
+            ),
+        )?;
+
+        return Ok(());
+    }
+
+    let slug = final_build_info.slug.unwrap().id;
+
+    let release_response = heroku_client(ctx).request(&releases::ReleaseCreate {
+        app_id: app_name.clone(),
+        params: releases::ReleaseCreateParams {
+            slug: String::from(slug),
+            description: Some(git_sha.to_string()),
+        },
+    });
+
+    msg.reply(
+        ctx,
+        match release_response {
+            Ok(_release) => format!(
+                "App {} commit {} has successfully been released!",
+                &app_name, git_sha,
+            ),
+            Err(e) => format!(
+                "An error occured when trying to release your app {}:\n{}",
+                app_name, e
+            ),
+        },
+    )?;
+
+    Ok(())
+}
+
 fn app_info_response(app: heroku_rs::endpoints::apps::App) -> String {
     format!(
         "\nApp ID: {}\nApp Name: {}\nReleased At: {}\nWeb URL: {}\n\n",
