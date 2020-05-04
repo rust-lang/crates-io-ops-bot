@@ -70,30 +70,22 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
         .single::<String>()
         .expect("You must include an app name");
 
-    let app_resp = heroku_client(ctx).request(&apps::AppDetails {
+    let app = heroku_client(ctx).request(&apps::AppDetails {
         app_id: app_name.clone(),
-    });
+    })?;
+
 
     msg.reply(
         &ctx,
-        match app_resp {
-            Ok(app) => app_info_response(app),
-            Err(e) => format!("An error occurred when fetching your Heroku app:\n{}", e),
-        },
+        app_info_response(app)
     )?;
 
-    let app_formations_resp =
-        heroku_client(ctx).request(&formations::FormationList { app_id: app_name });
+    let formations =
+        heroku_client(ctx).request(&formations::FormationList { app_id: app_name })?;
 
     msg.reply(
-        ctx,
-        match app_formations_resp {
-            Ok(formations) => app_formations_response(formations),
-            Err(e) => format!(
-                "An error occured when fetching your Heroku app formation info:\n{}",
-                e
-            ),
-        },
+        &ctx,
+        app_formations_response(formations)
     )?;
 
     Ok(())
