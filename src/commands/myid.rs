@@ -3,6 +3,8 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 
 #[command]
+#[description = "Returns your Discord ID"]
+#[example = "~my_id"]
 pub fn myid(ctx: &mut Context, msg: &Message) -> CommandResult {
     println!("user id {:?}", &msg.author.id.to_string());
 
