@@ -3,6 +3,8 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 
 #[command]
+#[description = "Multiplies two numbers"]
+#[example = "~multiply 2 5"]
 pub fn multiply(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     println!("running multiply command");
     let one = args.single::<f64>().unwrap();
