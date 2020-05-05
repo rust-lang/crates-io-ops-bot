@@ -65,6 +65,8 @@ impl GitHubClient {
 // Get app by name or id
 #[command]
 #[num_args(1)]
+#[description = "Gets information about an individual Heroku app"]
+#[example = "~get_app app_name_or_id"]
 pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let app_name = args
         .single::<String>()
@@ -97,6 +99,9 @@ const AUTHORIZED_CONFIG_VARS: &[&str] = &["FOO"];
 // Get app by name or id
 #[command]
 #[num_args(3)]
+#[description = "Updates an environmental variable (only if it is included in the AUTHORIZED_CONFIG_VARS constant"]
+#[example = "~update_app_config app_name_or_id ENV_VAR value"]
+#[example = "~update_app_config my_app FOO bar"]
 pub fn update_app_config(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let app_name = args
         .single::<String>()
@@ -142,6 +147,9 @@ const BLOCKED_IPS_ENV_VAR: &str = "BLOCKED_IPS";
 
 #[command]
 #[num_args(2)]
+#[description = "Block an IP address"]
+#[example = "~block_ip app_name_or_id ip_address_to_block"]
+#[example = "~block_ip my_app 123.4.5.67"]
 pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let app_name = args
         .single::<String>()
@@ -196,6 +204,9 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
 
 #[command]
 #[num_args(2)]
+#[description = "Unblock an IP address"]
+#[example = "~unblock_ip app_name_or_id ip_address_to_unblock"]
+#[example = "~unblock_ip my_app 123.4.5.6"]
 pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let app_name = args
         .single::<String>()
@@ -260,6 +271,9 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
 
 #[command]
 #[num_args(4)]
+#[description = "Scales a formation of dynos within a Heroku application"]
+#[example = "~scale_app your_app_name_or_id name_of_formation number_of_dynos_to_scale_to size_of_dyno"]
+#[example = "~scale_app my_app web 3 standard-1X"]
 pub fn scale_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let app_name = args
         .single::<String>()
@@ -293,6 +307,8 @@ pub fn scale_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRes
 // Get app by name or id
 #[command]
 #[num_args(1)]
+#[description = "Get a list of releases for a Heroku app"]
+#[example = "~get_app_releases app_name_or_id"]
 pub fn get_app_releases(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let app_name = args
         .single::<String>()
@@ -310,6 +326,10 @@ pub fn get_app_releases(ctx: &mut Context, msg: &Message, mut args: Args) -> Com
 
 #[command]
 #[num_args(2)]
+#[description = "Rollback an app to the code associated with a previous release"]
+#[example = "~rollback_app app_name version-to-rollback-to"]
+#[example = "~rollback_app my_app v5"]
+#[example = "~rollback_app my_app 5"]
 pub fn rollback_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let app_name = args
         .single::<String>()
@@ -338,6 +358,8 @@ pub fn rollback_app(ctx: &mut Context, msg: &Message, mut args: Args) -> Command
 }
 
 #[command]
+#[description = "Get all apps associated with your Heroku account"]
+#[example = "~get_apps"]
 pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
     let apps = heroku_client(ctx).request(&apps::AppList {})?;
 
@@ -351,6 +373,8 @@ pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult 
 
 #[command]
 #[num_args(1)]
+#[description = "Restart all dynos associated with an app"]
+#[example = "~restart_app app_name_or_id"]
 pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let app_name = args
         .single::<String>()
@@ -370,6 +394,9 @@ pub fn restart_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandR
 
 #[command]
 #[num_args(2)]
+#[description = "Deploy an app from a github reference (branch name, partial sha, or full sha)"]
+#[example = "~deploy_app app_name_or_id branch_commit_id_or_sha"]
+#[example = "~deploy_app my_app master"]
 pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResult {
     let app_name = args
         .single::<String>()
