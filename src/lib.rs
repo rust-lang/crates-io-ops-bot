@@ -103,6 +103,11 @@ pub fn run(config: Config) {
                     println!("Unhandled dispatch error {:?}", error);
                 }
             })
+            .after(|ctx, msg, cmd_name, error| {
+                if let Err(err) = error {
+                    msg.reply(&ctx, format!("There was an error when running {}: {:?}", cmd_name, err)).ok();
+                }
+            })
             .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
             .group(&GENERAL_GROUP),
     );
