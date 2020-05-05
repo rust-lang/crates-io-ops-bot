@@ -56,6 +56,10 @@ impl TypeMapKey for HerokuClientKey {
 }
 
 #[help]
+#[individual_command_tip =
+"Hello! こんにちは！Hola! Bonjour! 您好!\n\
+If you want more information about a specific command, just pass the command as argument."]
+#[command_not_found_text = "Could not find: `{}`."]
 fn my_help(
    context: &mut Context,
    msg: &Message,
@@ -124,6 +128,9 @@ pub fn run(config: Config) {
                 }
             })
             .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
+            .unrecognised_command(|ctx, msg, unknown_command_name| {
+                msg.reply(&ctx, format!("Could not find a command named `{}`", unknown_command_name)).ok();
+            })
             .help(&MY_HELP)
             .group(&GENERAL_GROUP),
     );
