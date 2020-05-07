@@ -453,9 +453,33 @@ Once it is running, you will see the bot in the "online" list on your Discord Se
 
 There is a Dockerfile within this repository to make it easy to build and run this bot within a Docker container (make sure you are in the directory for your copy of this repo)
 
+**Creating your docker_env.list file**
+
+You can pass all environmental variables to the Docker run command manually, but it's often much easier to keep them in a file. Unfortunately, we cannot just pass the .env file, as Docker requires that the env vars be in the format VAR1=value1, rather than VAR1="value2". One option is to copy your .env file.
+
+```bash
+cp .env docker_env.list
+```
+
+And then open it up and remove the quotation marks around the environmental variables.
+
+So 
+
+```
+VAR1="value1"
+```
+
+becomes
+
+```
+VAR1=value1
+```
+
+Then build your container image and run your container.
+
 ```bash
 docker build -t your_name/crates-io-ops-bot .
-docker run -i -t your_name/crates-io-ops-bot
+docker run --env-file docker_env.list -i -t your_name/crates-io-ops-bot
 ```
 
 ### Running in Heroku
