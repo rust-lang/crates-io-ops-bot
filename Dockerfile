@@ -1,3 +1,6 @@
+# This file is largely based on https://github.com/rust-lang/rust-log-analyzer/blob/master/Dockerfile
+# Which is licensed under the MIT License https://github.com/rust-lang/rust-log-analyzer/blob/master/LICENSE
+
 FROM ubuntu:bionic AS build
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
