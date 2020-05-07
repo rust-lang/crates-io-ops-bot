@@ -57,7 +57,7 @@ impl TypeMapKey for HerokuClientKey {
 
 #[help]
 #[individual_command_tip =
-"Hello! こんにちは！Hola! Bonjour! 您好!\n\
+"Hello! こんにちは！Hola! Bonjour! Ciao! 您好!\n\
 If you want more information about a specific command, just pass the command as argument."]
 #[command_not_found_text = "Could not find: `{}`."]
 fn my_help(
