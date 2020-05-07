@@ -89,7 +89,7 @@ You can access the list of commands and general help text with the ~help command
 ```
 you: ~help
 crates-io-bot: 
-Hello! こんにちは！Hola! Bonjour! 您好!
+Hello! こんにちは！Hola! Bonjour! Ciao! 您好!
 If you want more information about a specific command, just pass the command as argument.
 Strikethrough commands are unavailable because they require permissions, require a specific role, require certain conditions, or are limited to direct messages.
 General
