@@ -1,2 +1,3 @@
 /target
 .env
+docker_env.list
