@@ -72,12 +72,52 @@ you: ~multiply 2 2
 crates-io-bot: 4
 ```
 
+### Discord Commands
+
 If you run the ~myid command, this bot will respond with your
 Discord account ID.
 
 ```
 you: ~myid
 crates-io-bot: @you: Here is your user id 1234567
+```
+
+### Help Commands
+
+You can access the list of commands and general help text with the ~help command:
+
+```
+you: ~help
+crates-io-bot: 
+Hello! こんにちは！Hola! Bonjour! Ciao! 您好!
+If you want more information about a specific command, just pass the command as argument.
+Strikethrough commands are unavailable because they require permissions, require a specific role, require certain conditions, or are limited to direct messages.
+General
+ping
+multiply
+myid
+get_app
+get_apps
+restart_app
+scale_app
+update_app_config
+get_app_releases
+rollback_app
+block_ip
+unblock_ip
+deploy_app
+```
+
+To get help with a specific command, pass it as an argument to the help command. For example:
+
+```
+you: ~help block_ip
+crates-io-bot: 
+block_ip
+Block an IP address
+Sample usage
+block_ip ~block_ip app_name_or_id ip_address_to_block
+block_ip ~block_ip my_app 123.4.5.67
 ```
 
 ### Heroku commands
