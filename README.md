@@ -441,13 +441,22 @@ for that environment.
 
 ### Running locally
 
-You can run this bot in your local environment with this command (make sure you are in your copy of this repo)
+You can run this bot in your local environment with this command (make sure you are in the directory for your copy of this repo)
 
 ```bash
 cargo run
 ```
 
 Once it is running, you will see the bot in the "online" list on your Discord Server. Try out the commands!
+
+### Running with Docker
+
+There is a Dockerfile within this repository to make it easy to build and run this bot within a Docker container (make sure you are in the directory for your copy of this repo)
+
+```bash
+docker build -t your_name/crates-io-ops-bot .
+docker run -i -t your_name/crates-io-ops-bot
+```
 
 ### Running in Heroku
 
