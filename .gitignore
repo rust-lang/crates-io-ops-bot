@@ -1,3 +1,5 @@
 /target
 .env
 docker_env.list
+terraform.tfvars
+.terraform
