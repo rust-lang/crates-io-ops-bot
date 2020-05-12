@@ -3,7 +3,9 @@ variable "aws_region" {
     description = "aws region to deploy to"
 }
 
-variable "aws_profile" {}
+variable "aws_profile" {
+    default = "default"
+}
 
 variable "availability_zone" {
     default = "us-west-1b"
