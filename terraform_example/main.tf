@@ -1,3 +1,14 @@
+# This Terraform config is heavily based on the code
+# in these two blog posts
+# 
+# "Deplying Containers on Amazon's ECS using Fargate and Terraform: Part 2"
+# by Bradford Lamson-Scribner
+# https://medium.com/@bradford_hamilton/deploying-containers-on-amazons-ecs-using-fargate-and-terraform-part-2-2e6f6a3a957f
+#
+# "Hello, world: The Fargate/Terraform tutorial I wish I had"
+# by Jimmy Sawczuk 
+# https://section411.com/2019/07/hello-world/
+
 provider "aws" {
     region = var.aws_region
     profile = var.aws_profile
@@ -5,6 +16,8 @@ provider "aws" {
 
 data "aws_availability_zones" "available" {
 }
+
+# Sets up VPC and associated networking
 
 resource "aws_vpc" "main" {
   cidr_block = "172.17.0.0/16"
@@ -69,6 +82,8 @@ resource "aws_route_table_association" "private" {
   subnet_id      = element(aws_subnet.private.*.id, count.index)
   route_table_id = element(aws_route_table.private.*.id, count.index)
 }
+
+# Sets up security groups and load balancers
 
 resource "aws_security_group" "http" {
   name        = "http"
@@ -167,6 +182,8 @@ resource "aws_alb_listener" "crates-io-ops-bot-http" {
     target_group_arn = aws_lb_target_group.crates-io-ops-bot.arn
   }
 }
+
+# Set up secrets for in AWS SSM for containers to access
 
 resource "aws_ssm_parameter" "discord_token" {
   name = "/crates-io-ops-bot/discord_token"
@@ -356,6 +373,8 @@ resource "aws_iam_role_policy_attachment" "read_github_token" {
   role = aws_iam_role.crate-io-ops-bot-task-execution-role.name
   policy_arn = aws_iam_policy.read_github_token.arn
 }
+
+# Sets up ECS roles and the ECS cluster:w
 
 resource "aws_iam_role" "crate-io-ops-bot-task-execution-role" {
   name = "crates-io-ops-bot-task-execution-role"
