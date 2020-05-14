@@ -54,3 +54,31 @@ variable "fargate_memory" {
   description = "Fargate instance memory to provision (in MiB)"
   default     = "512"
 }
+
+variable "discord_token" {
+  description = "Your Discord token"
+}
+
+variable "authorized_users" {
+  description = "Users authorized to run restricted commands"
+}
+
+variable "heroku_api_key" {
+  description = "Your Heroku API Key"
+}
+
+variable "build_check_interval" {
+  description = "Time interval to check for an ongoing build's status"
+}
+
+variable "github_org" {
+  description = "GitHub org your app resides in"
+}
+
+variable "github_repo" {
+  description = "Github repo for your app"
+}
+
+variable "github_token" {
+  description = "Your GitHub token"
+}

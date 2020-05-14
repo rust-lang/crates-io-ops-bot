@@ -168,6 +168,195 @@ resource "aws_alb_listener" "crates-io-ops-bot-http" {
   }
 }
 
+resource "aws_ssm_parameter" "discord_token" {
+  name = "/crates-io-ops-bot/discord_token"
+  type = "SecureString"
+  value = var.discord_token
+}
+
+resource "aws_iam_policy" "read_discord_token" {
+  name = "ecs---crates-io-ops-bot-discord-token"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "AllowReadingConnectionUrl"
+        Effect   = "Allow"
+        Action   = "ssm:GetParameters"
+        Resource = aws_ssm_parameter.discord_token.arn
+      }
+    ]
+  })  
+}
+
+resource "aws_iam_role_policy_attachment" "read_discourse_token" {
+  depends_on = [aws_iam_policy.read_discord_token]
+  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  policy_arn = aws_iam_policy.read_discord_token.arn
+}
+
+resource "aws_ssm_parameter" "authorized_users" {
+  name = "/crates-io-ops-bot/authorized_users"
+  type = "SecureString"
+  value = var.authorized_users
+}
+
+resource "aws_iam_policy" "read_authorized_users" {
+  name = "ecs---crates-io-ops-bot-authorized-users"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "AllowReadingConnectionUrl"
+        Effect   = "Allow"
+        Action   = "ssm:GetParameters"
+        Resource = aws_ssm_parameter.authorized_users.arn
+      }
+    ]
+  })  
+}
+
+resource "aws_iam_role_policy_attachment" "read_authorized_users" {
+  depends_on = [aws_iam_policy.read_authorized_users]
+  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  policy_arn = aws_iam_policy.read_authorized_users.arn
+}
+
+resource "aws_ssm_parameter" "heroku_api_key" {
+  name = "/crates-io-ops-bot/heroku_api_key"
+  type = "SecureString"
+  value = var.heroku_api_key
+}
+
+resource "aws_iam_policy" "read_heroku_api_key" {
+  name = "ecs---crates-io-ops-bot-heroku-api-key"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "AllowReadingConnectionUrl"
+        Effect   = "Allow"
+        Action   = "ssm:GetParameters"
+        Resource = aws_ssm_parameter.heroku_api_key.arn
+      }
+    ]
+  })  
+}
+
+resource "aws_iam_role_policy_attachment" "read_heroku_api_key" {
+  depends_on = [aws_iam_policy.read_heroku_api_key]
+  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  policy_arn = aws_iam_policy.read_heroku_api_key.arn
+}
+
+resource "aws_ssm_parameter" "build_check_interval" {
+  name = "/crates-io-ops-bot/build_check_interval"
+  type = "SecureString"
+  value = var.build_check_interval
+}
+
+resource "aws_iam_policy" "read_build_check_interval" {
+  name = "ecs---crates-io-ops-bot-build-check-interval"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "AllowReadingConnectionUrl"
+        Effect   = "Allow"
+        Action   = "ssm:GetParameters"
+        Resource = aws_ssm_parameter.build_check_interval.arn
+      }
+    ]
+  })  
+}
+
+resource "aws_iam_role_policy_attachment" "read_build_check_interval" {
+  depends_on = [aws_iam_policy.read_build_check_interval]
+  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  policy_arn = aws_iam_policy.read_build_check_interval.arn
+}
+
+resource "aws_ssm_parameter" "github_org" {
+  name = "/crates-io-ops-bot/github_org"
+  type = "SecureString"
+  value = var.github_org
+}
+
+resource "aws_iam_policy" "read_github_org" {
+  name = "ecs---crates-io-ops-bot-read-github-org"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "AllowReadingConnectionUrl"
+        Effect   = "Allow"
+        Action   = "ssm:GetParameters"
+        Resource = aws_ssm_parameter.github_org.arn
+      }
+    ]
+  })  
+}
+
+resource "aws_iam_role_policy_attachment" "read_github_org" {
+  depends_on = [aws_iam_policy.read_github_org]
+  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  policy_arn = aws_iam_policy.read_github_org.arn
+}
+
+resource "aws_ssm_parameter" "github_repo" {
+  name = "/crates-io-ops-bot/github_repo"
+  type = "SecureString"
+  value = var.github_repo
+}
+
+resource "aws_iam_policy" "read_github_repo" {
+  name = "ecs---crates-io-ops-bot-read-github-repo"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "AllowReadingConnectionUrl"
+        Effect   = "Allow"
+        Action   = "ssm:GetParameters"
+        Resource = aws_ssm_parameter.github_repo.arn
+      }
+    ]
+  })  
+}
+
+resource "aws_iam_role_policy_attachment" "read_github_repo" {
+  depends_on = [aws_iam_policy.read_github_repo]
+  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  policy_arn = aws_iam_policy.read_github_repo.arn
+}
+
+resource "aws_ssm_parameter" "github_token" {
+  name = "/crates-io-ops-bot/github_token"
+  type = "SecureString"
+  value = var.github_token
+}
+
+resource "aws_iam_policy" "read_github_token" {
+  name = "ecs---crates-io-ops-bot-read-github-token"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "AllowReadingConnectionUrl"
+        Effect   = "Allow"
+        Action   = "ssm:GetParameters"
+        Resource = aws_ssm_parameter.github_token.arn
+      }
+    ]
+  })  
+}
+
+resource "aws_iam_role_policy_attachment" "read_github_token" {
+  depends_on = [aws_iam_policy.read_github_token]
+  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  policy_arn = aws_iam_policy.read_github_token.arn
+}
+
 resource "aws_iam_role" "crate-io-ops-bot-task-execution-role" {
   name = "crates-io-ops-bot-task-execution-role"
 
@@ -233,11 +422,18 @@ data "template_file" "crates-io-ops-bot" {
   template = file("./templates/crates-io-ops-bot.json.tpl")
 
   vars = {
-    app_image      = var.app_image
-    app_port       = var.app_port
-    fargate_cpu    = var.fargate_cpu
-    fargate_memory = var.fargate_memory
-    aws_region     = var.aws_region
+    app_image            = var.app_image
+    app_port             = var.app_port
+    fargate_cpu          = var.fargate_cpu
+    fargate_memory       = var.fargate_memory
+    aws_region           = var.aws_region
+    discord_token        = aws_ssm_parameter.discord_token.arn
+    authorized_users     = aws_ssm_parameter.authorized_users.arn
+    heroku_api_key       = aws_ssm_parameter.heroku_api_key.arn
+    build_check_interval = aws_ssm_parameter.build_check_interval.arn
+    github_org           = aws_ssm_parameter.github_org.arn
+    github_repo          = aws_ssm_parameter.github_repo.arn
+    github_token         = aws_ssm_parameter.heroku_api_key.arn
   }
 }
 
