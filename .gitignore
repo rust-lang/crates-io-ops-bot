@@ -3,3 +3,4 @@
 docker_env.list
 terraform.tfvars
 .terraform
+terraform.tfstate*

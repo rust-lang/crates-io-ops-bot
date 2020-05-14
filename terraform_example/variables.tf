@@ -7,6 +7,10 @@ variable "aws_profile" {
     default = "default"
 }
 
+variable "az_count" {
+  default = "2"
+}
+
 variable "availability_zone" {
     default = "us-west-1b"
 }
