@@ -20,6 +20,12 @@ $ git clone https://github.com/rust-lang/crates-io-ops-bot/
 $ cd crates-io-ops-bot/terraform_example
 ```
 
+Then initialize terraform:
+
+```bash
+$ terraform init
+```
+
 Now, copy the example variable values file:
 
 ```bash
