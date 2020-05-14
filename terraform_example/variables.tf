@@ -27,7 +27,7 @@ variable "ecs_auto_scale_role_name" {
 
 variable "app_image" {
     description = "Docker image to run in the ECS cluster"
-    default = "https://hub.docker.com/repository/docker/nellshamrell/crates-io-ops-bot"
+    default = "docker.io/nellshamrell/crates-io-ops-bot:latest"
 }
 
 variable "app_port" {

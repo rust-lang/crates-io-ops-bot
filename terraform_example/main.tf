@@ -191,7 +191,7 @@ resource "aws_iam_policy" "read_discord_token" {
 
 resource "aws_iam_role_policy_attachment" "read_discourse_token" {
   depends_on = [aws_iam_policy.read_discord_token]
-  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  role = aws_iam_role.crate-io-ops-bot-task-execution-role.name
   policy_arn = aws_iam_policy.read_discord_token.arn
 }
 
@@ -218,7 +218,7 @@ resource "aws_iam_policy" "read_authorized_users" {
 
 resource "aws_iam_role_policy_attachment" "read_authorized_users" {
   depends_on = [aws_iam_policy.read_authorized_users]
-  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  role = aws_iam_role.crate-io-ops-bot-task-execution-role.name
   policy_arn = aws_iam_policy.read_authorized_users.arn
 }
 
@@ -245,7 +245,7 @@ resource "aws_iam_policy" "read_heroku_api_key" {
 
 resource "aws_iam_role_policy_attachment" "read_heroku_api_key" {
   depends_on = [aws_iam_policy.read_heroku_api_key]
-  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  role = aws_iam_role.crate-io-ops-bot-task-execution-role.name
   policy_arn = aws_iam_policy.read_heroku_api_key.arn
 }
 
@@ -272,7 +272,7 @@ resource "aws_iam_policy" "read_build_check_interval" {
 
 resource "aws_iam_role_policy_attachment" "read_build_check_interval" {
   depends_on = [aws_iam_policy.read_build_check_interval]
-  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  role = aws_iam_role.crate-io-ops-bot-task-execution-role.name
   policy_arn = aws_iam_policy.read_build_check_interval.arn
 }
 
@@ -299,7 +299,7 @@ resource "aws_iam_policy" "read_github_org" {
 
 resource "aws_iam_role_policy_attachment" "read_github_org" {
   depends_on = [aws_iam_policy.read_github_org]
-  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  role = aws_iam_role.crate-io-ops-bot-task-execution-role.name
   policy_arn = aws_iam_policy.read_github_org.arn
 }
 
@@ -326,7 +326,7 @@ resource "aws_iam_policy" "read_github_repo" {
 
 resource "aws_iam_role_policy_attachment" "read_github_repo" {
   depends_on = [aws_iam_policy.read_github_repo]
-  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  role = aws_iam_role.crate-io-ops-bot-task-execution-role.name
   policy_arn = aws_iam_policy.read_github_repo.arn
 }
 
@@ -353,7 +353,7 @@ resource "aws_iam_policy" "read_github_token" {
 
 resource "aws_iam_role_policy_attachment" "read_github_token" {
   depends_on = [aws_iam_policy.read_github_token]
-  role       = data.aws_iam_policy.ecs-task-execution-role.name
+  role = aws_iam_role.crate-io-ops-bot-task-execution-role.name
   policy_arn = aws_iam_policy.read_github_token.arn
 }
 
