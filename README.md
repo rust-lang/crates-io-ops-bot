@@ -441,7 +441,7 @@ for that environment.
 
 ### Running locally
 
-You can run this bot in your local environment with this command (make sure you are in your copy of this repo)
+You can run this bot in your local environment with this command (make sure you are in the directory for your copy of this repo)
 
 ```bash
 cargo run
@@ -449,9 +449,47 @@ cargo run
 
 Once it is running, you will see the bot in the "online" list on your Discord Server. Try out the commands!
 
-### Running in Heroku
+### Running with Docker Locally
 
-You can also easily run this bot in Heroku.
+There is a Dockerfile within this repository to make it easy to build and run this bot within a Docker container (make sure you are in the directory for your copy of this repo)
 
-[This blog post on Davao JS](https://medium.com/davao-js/v2-tutorial-deploy-your-discord-bot-to-heroku-part-2-9a37572d5de4) has a good guide to manually setting 
-up a Discord bot in Heroku. Make sure you set the DISCORD_TOKEN and (if necessary) AUTHORIZED_USERS environmental variables for your Heroku application!
+**Creating your docker_env.list file**
+
+You can pass all environmental variables to the Docker run command manually, but it's often much easier to keep them in a file. Unfortunately, we cannot just pass the .env file, as Docker requires that the env vars be in the format VAR1=value1, rather than VAR1="value2". One option is to copy your .env file.
+
+```bash
+cp .env docker_env.list
+```
+
+And then open it up and remove the quotation marks around the environmental variables.
+
+So 
+
+```
+VAR1="value1"
+```
+
+becomes
+
+```
+VAR1=value1
+```
+
+**Without Building**
+If you do not need to make changes to the code itself, you can run it by pulling from the nellshamrell/crates-io-ops-bot docker repository (it will eventually be moved to rustlang/crates-io-ops-bot or another more appropriate repository).
+
+```bash
+docker pull nellshamrell/crates-io-ops-bot:latest
+docker run --env-file docker_env.list -it -t nellshamrell/crates-io-ops-bot
+```
+
+**With Building**
+You can also build the containg image on your own machine and then run a container from it:
+
+```bash
+docker build -t your_name/crates-io-ops-bot .
+docker run --env-file docker_env.list -i -t your_name/crates-io-ops-bot
+```
+
+### Running with Docker in Production
+You can also run this bot in a container on your production system - using the nellshamrell/crates-io-ops-bot image or your own built image.
