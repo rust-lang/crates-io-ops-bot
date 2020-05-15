@@ -76,19 +76,11 @@ pub fn get_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResul
         app_id: app_name.clone(),
     })?;
 
+    msg.reply(&ctx, app_info_response(app))?;
 
-    msg.reply(
-        &ctx,
-        app_info_response(app)
-    )?;
+    let formations = heroku_client(ctx).request(&formations::FormationList { app_id: app_name })?;
 
-    let formations =
-        heroku_client(ctx).request(&formations::FormationList { app_id: app_name })?;
-
-    msg.reply(
-        &ctx,
-        app_formations_response(formations)
-    )?;
+    msg.reply(&ctx, app_formations_response(formations))?;
 
     Ok(())
 }
@@ -126,10 +118,7 @@ pub fn update_app_config(ctx: &mut Context, msg: &Message, mut args: Args) -> Co
             params: config_var.clone(),
         })?;
 
-        msg.reply(
-            ctx,
-            format!("Config Var has been updated {:?}", config_var),
-        )?;
+        msg.reply(ctx, format!("Config Var has been updated {:?}", config_var))?;
     } else {
         msg.reply(
             &ctx,
@@ -159,8 +148,8 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
         .single::<String>()
         .expect("You must include an IP address to block");
 
-    let current_config_vars = heroku_client(ctx)
-        .request(&config_vars::AppConfigVarDetails { app_id: &app_name })?;
+    let current_config_vars =
+        heroku_client(ctx).request(&config_vars::AppConfigVarDetails { app_id: &app_name })?;
 
     // If the BLOCKED_IPS environmental variable does not
     // currently exist, create it
@@ -172,7 +161,10 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
 
         msg.reply(
             &ctx,
-            format!("The {} environmental variable has been created for {}", BLOCKED_IPS_ENV_VAR, app_name),
+            format!(
+                "The {} environmental variable has been created for {}",
+                BLOCKED_IPS_ENV_VAR, app_name
+            ),
         )?;
     }
 
@@ -193,10 +185,7 @@ pub fn block_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandResu
             params: updated_config_var,
         })?;
 
-        msg.reply(
-            ctx,
-            format!("IP address {} has been blocked", ip_addr),
-        )?;
+        msg.reply(ctx, format!("IP address {} has been blocked", ip_addr))?;
     };
 
     Ok(())
@@ -216,8 +205,8 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .single::<String>()
         .expect("You must include an IP address to unblock");
 
-    let current_config_vars = heroku_client(ctx)
-        .request(&config_vars::AppConfigVarDetails { app_id: &app_name })?;
+    let current_config_vars =
+        heroku_client(ctx).request(&config_vars::AppConfigVarDetails { app_id: &app_name })?;
 
     if !blocked_ips_exist(&current_config_vars) {
         msg.reply(
@@ -259,10 +248,7 @@ pub fn unblock_ip(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
                 params: blocked_ips_config_var(blocked_ips_set),
             })?;
 
-            msg.reply(
-                ctx,
-                format!("IP address {} has been unblocked", ip_addr),
-            )?;
+            msg.reply(ctx, format!("IP address {} has been unblocked", ip_addr))?;
         };
     }
 
@@ -296,10 +282,7 @@ pub fn scale_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRes
         },
     })?;
 
-    msg.reply(
-        ctx,
-        formation_updated_response(app_name, formation),
-    )?;
+    msg.reply(ctx, formation_updated_response(app_name, formation))?;
 
     Ok(())
 }
@@ -316,10 +299,7 @@ pub fn get_app_releases(ctx: &mut Context, msg: &Message, mut args: Args) -> Com
 
     let releases = heroku_client(ctx).request(&releases::ReleaseList { app_id: app_name })?;
 
-    msg.reply(
-        ctx,
-        releases_response(releases),
-    )?;
+    msg.reply(ctx, releases_response(releases))?;
 
     Ok(())
 }
@@ -363,10 +343,7 @@ pub fn rollback_app(ctx: &mut Context, msg: &Message, mut args: Args) -> Command
 pub fn get_apps(ctx: &mut Context, msg: &Message, _args: Args) -> CommandResult {
     let apps = heroku_client(ctx).request(&apps::AppList {})?;
 
-    msg.reply(
-        ctx,
-        apps_response(apps),
-    )?;
+    msg.reply(ctx, apps_response(apps))?;
 
     Ok(())
 }
@@ -413,7 +390,9 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .get(&commit_info_url(ctx, git_ref))
         .headers(new_github_client.headers);
 
-    let github_response = github_request.send().and_then(|res| res.error_for_status())?;
+    let github_response = github_request
+        .send()
+        .and_then(|res| res.error_for_status())?;
 
     let response_text = github_response.text().unwrap();
 
