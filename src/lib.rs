@@ -2,10 +2,12 @@ use heroku_rs::framework::{auth::Credentials, ApiEnvironment, HttpApiClient, Htt
 
 use serenity::client::Client;
 use serenity::framework::standard::DispatchError::{NotEnoughArguments, TooManyArguments};
-use serenity::framework::standard::{macros::group, StandardFramework};
+use serenity::framework::standard::{HelpOptions, help_commands, Args, CommandGroup, CommandResult, macros::{help,group}, StandardFramework};
 use serenity::model::gateway::Ready;
 use serenity::prelude::{Context, EventHandler, TypeMapKey};
+use serenity::model::prelude::{Message, UserId};
 use std::sync::Arc;
+use std::collections::HashSet;
 
 mod commands;
 
@@ -52,6 +54,23 @@ struct HerokuClientKey;
 impl TypeMapKey for HerokuClientKey {
     type Value = Arc<heroku_rs::framework::HttpApiClient>;
 }
+
+#[help]
+#[individual_command_tip =
+"Hello! こんにちは！Hola! Bonjour! Ciao! 您好!\n\
+If you want more information about a specific command, just pass the command as argument."]
+#[command_not_found_text = "Could not find: `{}`."]
+fn my_help(
+   context: &mut Context,
+   msg: &Message,
+   args: Args,
+   help_options: &'static HelpOptions,
+   groups: &[&'static CommandGroup],
+   owners: HashSet<UserId>
+) -> CommandResult {
+   help_commands::with_embeds(context, msg, args, help_options, groups, owners)
+}
+
 
 // These commands do not require a user
 // to be in the AUTHORIZED_USERS env variable
@@ -109,6 +128,10 @@ pub fn run(config: Config) {
                 }
             })
             .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
+            .unrecognised_command(|ctx, msg, unknown_command_name| {
+                msg.reply(&ctx, format!("Could not find a command named `{}`", unknown_command_name)).ok();
+            })
+            .help(&MY_HELP)
             .group(&GENERAL_GROUP),
     );
 
