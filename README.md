@@ -409,7 +409,7 @@ cargo run
 
 Once it is running, you will see the bot in the "online" list on your Discord Server. Try out the commands!
 
-### Running with Docker
+### Running with Docker Locally
 
 There is a Dockerfile within this repository to make it easy to build and run this bot within a Docker container (make sure you are in the directory for your copy of this repo)
 
@@ -435,16 +435,22 @@ becomes
 VAR1=value1
 ```
 
-Then build your container image and run your container.
+**Without Building**
+If you do not need to make changes to the code itself, you can run it by pulling from the nellshamrell/crates-io-ops-bot docker repository (it will eventually be moved to rustlang/crates-io-ops-bot or another more appropriate repository).
+
+```bash
+docker pull nellshamrell/crates-io-ops-bot:latest
+docker run --env-file docker_env.list -it -t nellshamrell/crates-io-ops-bot
+```
+
+**With Building**
+You can also build the containg image on your own machine and then run a container from it:
 
 ```bash
 docker build -t your_name/crates-io-ops-bot .
 docker run --env-file docker_env.list -i -t your_name/crates-io-ops-bot
 ```
 
-### Running in Heroku
+### Running with Docker in Production
 
-You can also easily run this bot in Heroku.
-
-[This blog post on Davao JS](https://medium.com/davao-js/v2-tutorial-deploy-your-discord-bot-to-heroku-part-2-9a37572d5de4) has a good guide to manually setting 
-up a Discord bot in Heroku. Make sure you set the DISCORD_TOKEN and (if necessary) AUTHORIZED_USERS environmental variables for your Heroku application!
+You can also run this bot in a container on your production system - using the nellshamrell/crates-io-ops-bot image or your own built image.
