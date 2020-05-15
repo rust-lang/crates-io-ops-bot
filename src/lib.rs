@@ -1,13 +1,20 @@
+#![warn(clippy::all, rust_2018_idioms)]
+#![allow(clippy::implicit_hasher)]
+
 use heroku_rs::framework::{auth::Credentials, ApiEnvironment, HttpApiClient, HttpApiClientConfig};
 
 use serenity::client::Client;
 use serenity::framework::standard::DispatchError::{NotEnoughArguments, TooManyArguments};
-use serenity::framework::standard::{HelpOptions, help_commands, Args, CommandGroup, CommandResult, macros::{help,group}, StandardFramework};
+use serenity::framework::standard::{
+    help_commands,
+    macros::{group, help},
+    Args, CommandGroup, CommandResult, HelpOptions, StandardFramework,
+};
 use serenity::model::gateway::Ready;
-use serenity::prelude::{Context, EventHandler, TypeMapKey};
 use serenity::model::prelude::{Message, UserId};
-use std::sync::Arc;
+use serenity::prelude::{Context, EventHandler, TypeMapKey};
 use std::collections::HashSet;
+use std::sync::Arc;
 
 mod commands;
 
@@ -56,21 +63,19 @@ impl TypeMapKey for HerokuClientKey {
 }
 
 #[help]
-#[individual_command_tip =
-"Hello! こんにちは！Hola! Bonjour! Ciao! 您好!\n\
+#[individual_command_tip = "Hello! こんにちは！Hola! Bonjour! Ciao! 您好!\n\
 If you want more information about a specific command, just pass the command as argument."]
 #[command_not_found_text = "Could not find: `{}`."]
 fn my_help(
-   context: &mut Context,
-   msg: &Message,
-   args: Args,
-   help_options: &'static HelpOptions,
-   groups: &[&'static CommandGroup],
-   owners: HashSet<UserId>
+    context: &mut Context,
+    msg: &Message,
+    args: Args,
+    help_options: &'static HelpOptions,
+    groups: &[&'static CommandGroup],
+    owners: HashSet<UserId>,
 ) -> CommandResult {
-   help_commands::with_embeds(context, msg, args, help_options, groups, owners)
+    help_commands::with_embeds(context, msg, args, help_options, groups, owners)
 }
-
 
 // These commands do not require a user
 // to be in the AUTHORIZED_USERS env variable
@@ -124,12 +129,20 @@ pub fn run(config: Config) {
             })
             .after(|ctx, msg, cmd_name, error| {
                 if let Err(err) = error {
-                    msg.reply(&ctx, format!("There was an error when running {}: {:?}", cmd_name, err)).ok();
+                    msg.reply(
+                        &ctx,
+                        format!("There was an error when running {}: {:?}", cmd_name, err),
+                    )
+                    .ok();
                 }
             })
             .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
             .unrecognised_command(|ctx, msg, unknown_command_name| {
-                msg.reply(&ctx, format!("Could not find a command named `{}`", unknown_command_name)).ok();
+                msg.reply(
+                    &ctx,
+                    format!("Could not find a command named `{}`", unknown_command_name),
+                )
+                .ok();
             })
             .help(&MY_HELP)
             .group(&GENERAL_GROUP),
