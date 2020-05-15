@@ -10,6 +10,8 @@ jobs:
      # Set rustup toolchain
      - run: rustup default ${{ matrix.channel }}
      - uses: rust-lang/simpleinfra/github-actions/simple-ci@master
+       with:
+         check_fmt: true
      strategy:
        matrix:
          channel: [stable, beta, nightly]
