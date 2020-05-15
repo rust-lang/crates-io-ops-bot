@@ -1,3 +1,6 @@
+#![warn(clippy::all, rust_2018_idioms)]
+#![allow(clippy::implicit_hasher)]
+
 use heroku_rs::framework::{auth::Credentials, ApiEnvironment, HttpApiClient, HttpApiClientConfig};
 
 use serenity::client::Client;
