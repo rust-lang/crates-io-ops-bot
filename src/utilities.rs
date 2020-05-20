@@ -14,25 +14,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn create_authorized_users_hashset() {
-        let test_string = String::from("123,456,789");
-        let users_set = parse_config_value_set(test_string);
+    fn create_ips_hashset() {
+        let test_string = String::from("123.0.0.1,456.0.0.1,789.0.0.1");
+        let ips_set = parse_config_value_set(test_string);
 
-        assert!(users_set.contains("123"));
-        assert!(users_set.contains("456"));
-        assert!(users_set.contains("789"));
+        assert!(ips_set.contains("123.0.0.1"));
+        assert!(ips_set.contains("456.0.0.1"));
+        assert!(ips_set.contains("789.0.0.1"));
     }
 
     #[test]
-    fn create_authorized_users_string() {
-        let mut users_hash_set = HashSet::new();
-        users_hash_set.insert("123".to_string());
-        users_hash_set.insert("456".to_string());
-        users_hash_set.insert("789".to_string());
+    fn create_authorized_ips_string() {
+        let mut ips_hash_set = HashSet::new();
+        ips_hash_set.insert("123.0.0.1".to_string());
+        ips_hash_set.insert("456.0.0.1".to_string());
+        ips_hash_set.insert("789.0.0.1".to_string());
 
-        let users_string = parse_config_value_string(users_hash_set);
-        assert!(users_string.contains("123"));
-        assert!(users_string.contains("456"));
-        assert!(users_string.contains("789"));
+        let ips_string = parse_config_value_string(ips_hash_set);
+        assert!(ips_string.contains("123.0.0.1"));
+        assert!(ips_string.contains("456.0.0.1"));
+        assert!(ips_string.contains("789.0.0.1"));
     }
 }
