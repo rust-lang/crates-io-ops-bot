@@ -44,11 +44,10 @@ fn get_team_info() -> Result<TeamResponse, reqwest::Error> {
         &String::from("https://team-api.infra.rust-lang.org/v1/permissions/crates_io_ops_bot.staging_crates_io.json")
     );
 
-    let team_response = team_request.send().and_then(|res| res.error_for_status())?;
-
-    let response_text = team_response.text().unwrap();
-
-    let team_json: TeamResponse = serde_json::from_str(&response_text).unwrap();
+    let team_json: TeamResponse = team_request
+        .send()?
+        .error_for_status()?
+        .json()?;
 
     Ok(team_json)
 }
