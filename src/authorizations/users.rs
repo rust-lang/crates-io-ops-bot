@@ -1,7 +1,9 @@
 use reqwest::blocking::Client as reqwest_client;
 use serde::Deserialize;
+use std::error::Error;
 
 // Checks for permissions in https://github.com/rust-lang/team/
+
 #[derive(Debug, Deserialize, Clone)]
 struct TeamResponse {
     discord_ids: Vec<usize>,
@@ -22,34 +24,49 @@ impl TeamClient {
     }
 }
 
-pub fn is_authorized(id: &str) -> bool {
-    let authorization_info = team_info();
-    discord_id_in_list(id, authorization_info)
-}
-
-fn discord_id_in_list(id: &str, team_response: TeamResponse) -> bool {
-    team_response
-        .discord_ids
-        .contains(&id.parse::<usize>().unwrap())
-}
-
-fn team_info() -> TeamResponse {
-    get_team_info().unwrap()
-}
-
-fn get_team_info() -> Result<TeamResponse, reqwest::Error> {
+fn get_team_info() -> Result<TeamResponse, Box<dyn Error>> {
     let team_client = TeamClient::new();
 
     let team_request = team_client.client.get(
         &String::from("https://team-api.infra.rust-lang.org/v1/permissions/crates_io_ops_bot.staging_crates_io.json")
     );
 
-    let team_json: TeamResponse = team_request
-        .send()?
-        .error_for_status()?
-        .json()?;
+    let team_response = team_request.send()?;
+
+    let team_response = match team_response.error_for_status() {
+        Ok(team_response) => team_response,
+        Err(err) => {
+            return Err(Box::new(err));
+        }
+    };
+
+    let team_json: TeamResponse = team_response.json()?;
 
     Ok(team_json)
+}
+
+fn team_info() -> std::result::Result<TeamResponse, Box<dyn Error>> {
+    get_team_info()
+}
+
+pub fn is_authorized(id: &str) -> Result<bool, Box<dyn Error>> {
+    let authorization_info = team_info();
+
+    let authorization_info = match authorization_info {
+        Ok(authorization_info) => authorization_info,
+        Err(e) => {
+            return Err(e);
+        }
+    };
+
+    let result = discord_id_in_list(id, authorization_info);
+    Ok(result)
+}
+
+fn discord_id_in_list(id: &str, team_response: TeamResponse) -> bool {
+    team_response
+        .discord_ids
+        .contains(&id.parse::<usize>().unwrap())
 }
 
 #[cfg(test)]
