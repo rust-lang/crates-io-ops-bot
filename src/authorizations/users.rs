@@ -38,12 +38,8 @@ fn get_team_info() -> Result<TeamResponse, Box<dyn Error>> {
     Ok(team_json)
 }
 
-fn team_info() -> std::result::Result<TeamResponse, Box<dyn Error>> {
-    get_team_info()
-}
-
 pub fn is_authorized(id: &str) -> Result<bool, Box<dyn Error>> {
-    let authorization_info = team_info()?;
+    let authorization_info = get_team_info()?;
 
     let result = discord_id_in_list(id, authorization_info);
     Ok(result)
