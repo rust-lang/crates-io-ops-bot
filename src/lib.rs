@@ -95,7 +95,22 @@ pub fn run(config: Config) {
     client.with_framework(
         StandardFramework::new()
             .before(move |ctx, msg, cmd_name| {
-                if !is_authorized(&msg.author.id.to_string(), &config) {
+                let authorized = is_authorized(&msg.author.id.to_string());
+
+                let authorized = match authorized {
+                    Ok(authorized) => authorized,
+                    Err(error) => {
+                        msg.reply(
+                            ctx,
+                            format!("Unable to get a list of authorized users: {}", error),
+                        )
+                        .ok();
+
+                        return false;
+                    }
+                };
+
+                if !authorized {
                     if NO_AUTH_COMMANDS.contains(&cmd_name) {
                         return true;
                     }

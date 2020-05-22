@@ -43,16 +43,14 @@ This Discord bot allows you to run commands in a Discord channel like this:
 
 ### Configuring Commands
 
-By default, all commands are locked down and only can be run by users with ids
-in the AUTHORIZED_USERS environmental variable. 
+By default, all commands are locked down and only can be run by users with permissions defined in the [rust-org team repo](https://github.com/rust-lang/team/) like [this user](https://github.com/rust-lang/team/blob/master/people/nellshamrell.toml).
 
 If you would like a command to be runnable by anyone (not just those
-defined in AUTHORIZED USERS), you need to add it to the NO_AUTH_COMMANDS constant.
+authorized in the team repo), you need to add it to the NO_AUTH_COMMANDS constant.
 
 **lib.rs**
 ```rust
-// These commands do not require a user
-// to be in the AUTHORIZED_USERS env variable
+// These commands do not require a user to be authorized
 const NO_AUTH_COMMANDS: &[&str] = &["ping", "multiply", "myid"]
 ```
 
@@ -376,24 +374,6 @@ DISCORD_TOKEN="<paste your token here>"
 
 To use the token in production, make sure to set it wherever you define your environmental variables
 for your production environment.
-
-### Setting up Authorized Users
-
-Currently, all commands except ~ping can be run by anyone in the Discord server running this bot.
-
-~ping is a restricted command - only authorized users can run it.
-
-You can enable a user to run restricted commands by adding their Discord user id to the AUTHORIZED_USERS environmental variable.
-
-To use the list of authorized users in development and test environments, set the variable in your .env file
-
-**.env**
-```
-AUTHORIZED_USERS="123,456"
-```
-
-To use the authorized user list in a CI/CD or production environment, make sure to set it wherever you define your environmental variables
-for that environment.
 
 ### Setting up the Heroku API key
 
