@@ -1,4 +1,4 @@
-use reqwest::blocking::Client as reqwest_client;
+use reqwest::blocking::Client as ReqwestClient;
 use serde::Deserialize;
 use std::error::Error;
 
@@ -11,12 +11,12 @@ struct TeamResponse {
 
 #[derive(Debug)]
 struct TeamClient {
-    client: reqwest_client,
+    client: ReqwestClient,
 }
 
 impl TeamClient {
     pub fn new() -> Self {
-        let team_client = reqwest_client::new();
+        let team_client = ReqwestClient::new();
 
         TeamClient {
             client: team_client,
@@ -31,14 +31,7 @@ fn get_team_info() -> Result<TeamResponse, Box<dyn Error>> {
         &String::from("https://team-api.infra.rust-lang.org/v1/permissions/crates_io_ops_bot.staging_crates_io.json")
     );
 
-    let team_response = team_request.send()?;
-
-    let team_response = match team_response.error_for_status() {
-        Ok(team_response) => team_response,
-        Err(err) => {
-            return Err(Box::new(err));
-        }
-    };
+    let team_response = team_request.send().and_then(|res| res.error_for_status())?;
 
     let team_json: TeamResponse = team_response.json()?;
 
@@ -50,14 +43,7 @@ fn team_info() -> std::result::Result<TeamResponse, Box<dyn Error>> {
 }
 
 pub fn is_authorized(id: &str) -> Result<bool, Box<dyn Error>> {
-    let authorization_info = team_info();
-
-    let authorization_info = match authorization_info {
-        Ok(authorization_info) => authorization_info,
-        Err(e) => {
-            return Err(e);
-        }
-    };
+    let authorization_info = team_info()?;
 
     let result = discord_id_in_list(id, authorization_info);
     Ok(result)
