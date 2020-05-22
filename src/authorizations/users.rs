@@ -31,7 +31,7 @@ fn get_team_info() -> Result<TeamResponse, Box<dyn Error>> {
         &String::from("https://team-api.infra.rust-lang.org/v1/permissions/crates_io_ops_bot.staging_crates_io.json")
     );
 
-    let team_response = team_request.send().and_then(|res| res.error_for_status())?;
+    let team_response = team_request.send()?.error_for_status()?;
 
     let team_json: TeamResponse = team_response.json()?;
 
