@@ -2,7 +2,7 @@ name: CI
 on: [push, pull_request]
 
 env:
-  AWS_ACCESS_KEY_ID: AKIA46X5W6CZNZLSA3AD
+  AWS_ACCESS_KEY_ID: AKIA46X5W6CZOHGEGKUY 
 
 jobs:
   ci:
