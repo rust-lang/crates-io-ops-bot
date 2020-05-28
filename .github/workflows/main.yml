@@ -1,17 +1,40 @@
-name: Rust
+name: CI
 on: [push, pull_request]
+
 env:
-  CARGO_TARGET_DIR: target
+  AWS_ACCESS_KEY_ID: AKIA46X5W6CZNZLSA3AD
+
 jobs:
-   build:
-     runs-on: ubuntu-latest
-     steps:
-     - uses: actions/checkout@v2
-     # Set rustup toolchain
-     - run: rustup default ${{ matrix.channel }}
-     - uses: rust-lang/simpleinfra/github-actions/simple-ci@master
-       with:
-         check_fmt: true
-     strategy:
-       matrix:
-         channel: [stable, beta, nightly]
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout the source code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Install Rust
+        run: rustup update stable && rustup default stable
+
+      - name: Check formatting
+        run: cargo fmt -- --check
+
+      - name: Run the test suite
+        run: cargo test
+
+      - name: Build the Docker container
+        run: docker build -t crates-io-ops-bot .
+
+      - name: Deploy to production
+        uses: rust-lang/simpleinfra/github-actions/upload-docker-image@master
+        with:
+          image: crates-io-ops-bot
+          repository: crates-io-ops-bot
+          region: us-west-1
+          redeploy_ecs_cluster: rust-ecs-prod
+          redeploy_ecs_service: crates-io-ops-bot
+          aws_access_key_id: "${{ env.AWS_ACCESS_KEY_ID }}"
+          aws_secret_access_key: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+        if: github.ref == 'refs/heads/master'
