@@ -151,7 +151,7 @@ pub fn run(config: Config) {
                     .ok();
                 }
             })
-            .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
+            .configure(|c| c.prefix("!")) // set the bot's prefix to "!""
             .unrecognised_command(|ctx, msg, unknown_command_name| {
                 msg.reply(
                     &ctx,
