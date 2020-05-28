@@ -26,3 +26,15 @@ jobs:
 
       - name: Build the Docker container
         run: docker build -t crates-io-ops-bot .
+
+        - name: Deploy to production
+        uses: rust-lang/simpleinfra/github-actions/upload-docker-image@master
+        with:
+          image: crates-io-ops-bot
+          repository: crates-io-ops-bot
+          region: us-west-1
+          redeploy_ecs_cluster: rust-ecs-prod
+          redeploy_ecs_service: crates-io-ops-bot
+          aws_access_key_id: "${{ env.AWS_ACCESS_KEY_ID }}"
+          aws_secret_access_key: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+        if: github.ref == 'refs/heads/master'
