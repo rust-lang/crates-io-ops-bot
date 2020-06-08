@@ -394,8 +394,6 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .send()
         .and_then(|res| res.error_for_status())?;
 
-    println!("GitHub response: {:?}", github_response);
-
     let response_text = github_response.text().unwrap();
 
     let github_json: GitHubResponse = serde_json::from_str(&response_text).unwrap();
@@ -413,8 +411,6 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             },
         },
     })?;
-
-    println!("Build response: {:?}", build_response(&app_name, &build));
 
     msg.reply(&ctx, build_response(&app_name, &build))?;
 
@@ -456,7 +452,6 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
     }
 
     let final_build_info = final_build_info_response.unwrap();
-    println!("Final build info {:?}", final_build_info.clone());
 
     if final_build_info.status != "succeeded" {
         msg.reply(
@@ -472,15 +467,13 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
 
     let slug = final_build_info.slug.unwrap().id;
 
-    let release_response = heroku_client(ctx).request(&releases::ReleaseCreate {
+    let _release_response = heroku_client(ctx).request(&releases::ReleaseCreate {
         app_id: app_name.clone(),
         params: releases::ReleaseCreateParams {
             slug,
             description: Some(git_sha.to_string()),
         },
     })?;
-
-    println("release_response: {:?}", release_response);
 
     msg.reply(
         ctx,
