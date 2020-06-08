@@ -470,18 +470,6 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         return Ok(());
     }
 
-    let slug = final_build_info.slug.unwrap().id;
-
-    let release_response = heroku_client(ctx).request(&releases::ReleaseCreate {
-        app_id: app_name.clone(),
-        params: releases::ReleaseCreateParams {
-            slug,
-            description: Some(git_sha.to_string()),
-        },
-    })?;
-
-    println("release_response: {:?}", release_response);
-
     msg.reply(
         ctx,
         format!(
