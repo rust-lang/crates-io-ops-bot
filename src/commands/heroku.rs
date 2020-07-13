@@ -11,7 +11,8 @@ use serenity::prelude::*;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-use std::{thread, time};
+use std::sync::Arc;
+use std::sync::Mutex;
 
 use crate::config::Config;
 
@@ -19,6 +20,9 @@ use crate::utilities::*;
 
 use reqwest::blocking::Client as reqwest_client;
 use reqwest::header::{self, HeaderMap, HeaderValue};
+
+use job_scheduler::{Job, JobScheduler};
+use std::time::Duration;
 
 #[derive(Debug, Deserialize)]
 struct HerokuApp {
@@ -389,15 +393,12 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .client
         .get(&commit_info_url(ctx, git_ref))
         .headers(new_github_client.headers);
-
     let github_response = github_request
         .send()
         .and_then(|res| res.error_for_status())?;
-
     let response_text = github_response.text().unwrap();
 
     let github_json: GitHubResponse = serde_json::from_str(&response_text).unwrap();
-
     let git_sha = github_json.sha;
 
     let build = heroku_client(ctx).request(&builds::BuildCreate {
@@ -414,23 +415,76 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
 
     msg.reply(&ctx, build_response(&app_name, &build))?;
 
-    let mut build_pending = true;
+    let build_pending = Arc::new(Mutex::new(true));
+    let build_pending_value = Arc::clone(&build_pending);
 
-    while build_pending {
+    let build = heroku_client(ctx).request(&builds::BuildDetails {
+        app_id: app_name.clone(),
+        build_id: build.clone().id,
+    })?;
+
+    let build_status = Arc::new(Mutex::new(build.clone().status));
+    let build_status_value = Arc::clone(&build_status);
+
+    let mut sched = JobScheduler::new();
+
+    let build_check_interval = bot_config(&ctx).build_check_interval.clone();
+
+    // Set up job to periodically check if the build is complete
+    sched.add(Job::new(
+        job_interval(build_check_interval).parse().unwrap(),
+        || {
+            if *build_status.lock().unwrap() != "pending" {
+                let mut value = build_pending_value.lock().unwrap();
+                *value = false;
+            }
+        },
+    ));
+
+    // Set up job to periodically display a build status message in Discord
+    let build_id = build.clone().id;
+    let context = ctx.clone();
+    let build_message_display_interval = bot_config(&ctx).build_message_display_interval.clone();
+
+    sched.add(Job::new(
+        job_interval(build_message_display_interval)
+            .parse()
+            .unwrap(),
+        move || {
+
+            // Doing manual error handling
+            // Because the try (?) operator cannot be 
+            // used in a closure
+            // (As of July 2020)
+            let result = msg.channel_id
+                .say(&context, format!("Build {} is still pending...", build_id));
+
+            // Printing to the console as 
+            // An error cannot be propogated from an closure
+            // up to the 
+            // enclosing function
+            // (As of July 2020)
+            match result {
+                Ok(_result) => {},
+                Err(e) => {
+                    println!("An error occured when trying to post the build pending message for {}: {}", build_id, e);
+                }
+            }
+        },
+    ));
+
+    while *build_pending.lock().unwrap() {
         let build = heroku_client(ctx).request(&builds::BuildDetails {
             app_id: app_name.clone(),
             build_id: build.clone().id,
         })?;
 
-        if build.status == "pending" {
-            msg.channel_id
-                .say(&ctx, format!("Build {} is still pending...", &build.id))?;
+        let mut value = build_status_value.lock().unwrap();
+        *value = build.status;
+        std::mem::drop(value);
 
-            let duration = time::Duration::from_secs(bot_config(&ctx).build_check_interval);
-            thread::sleep(duration);
-        } else {
-            build_pending = false
-        }
+        sched.tick();
+        std::thread::sleep(Duration::from_millis(500));
     }
 
     // Release the new build
@@ -630,4 +684,9 @@ fn source_url(ctx: &Context, git_sha: &str) -> String {
         bot_config(ctx).github_repo,
         git_sha,
     )
+}
+
+fn job_interval(interval: String) -> String {
+    let interval_string = format!("1/{} * * * * *", interval);
+    interval_string
 }

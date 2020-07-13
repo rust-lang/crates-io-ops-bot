@@ -5,7 +5,8 @@ use std::sync::Arc;
 pub struct Config {
     pub discord_token: String,
     pub heroku_api_key: String,
-    pub build_check_interval: u64,
+    pub build_check_interval: String,
+    pub build_message_display_interval: String,
     pub github_org: String,
     pub github_repo: String,
     pub github_token: String,
@@ -16,6 +17,7 @@ impl Config {
         discord_token: String,
         heroku_api_key: String,
         build_check_interval: String,
+        build_message_display_interval: String,
         github_org: String,
         github_repo: String,
         github_token: String,
@@ -23,7 +25,8 @@ impl Config {
         Config {
             discord_token,
             heroku_api_key,
-            build_check_interval: build_check_interval.parse::<u64>().unwrap(),
+            build_check_interval: build_check_interval,
+            build_message_display_interval: build_message_display_interval,
             github_org,
             github_repo,
             github_token,
