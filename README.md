@@ -240,7 +240,8 @@ Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
 
 This command will:
 * Create a build of the code
-* Provide updates on the build while it is in progress (this is configurable through the BUILD_CHECK_INTERVAL environmental variable)
+* Periodically check the build for progress (this is configurable through the BUILD_CHECK_INTERVAL environmental variable)
+* Periodically display messages in the Discord channel that the build is still pending (this is configurable through the BUILD_MESSAGE_DISPLAY_INTERVAL environmental variable)
 * Release the application as the version you specified
 
 **!rollback_app**
@@ -418,6 +419,22 @@ BUILD_CHECK_INTERVAL="5"
 
 To use the build check interval in a CI/CD or production environment, make sure to set it wherever you define your environmental variables
 for that environment.
+
+### Setting up the Build Message Display Interval
+
+The !deploy_app command kicks of a build of your application and periodically checks the build to see if it is still pending. This environmental variable allows you to configure how often messages are sent to the Discord channel indicating that the build is still pending.
+
+This will set the build message display interval to **30 seconds**
+
+**.env**
+```
+BUILD_CHECK_INTERVAL="30"
+```
+
+To use the build message display interval in a CI/CD or production environment, make sure to set it wherever you define your environmental variables
+for that environment.
+
+
 
 ### Running locally
 
