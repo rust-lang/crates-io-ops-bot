@@ -8,6 +8,7 @@ use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::collections::HashMap;
 use std::collections::HashSet;
 
@@ -415,8 +416,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
 
     msg.reply(&ctx, build_response(&app_name, &build))?;
 
-    let build_pending = Arc::new(Mutex::new(true));
-    let build_pending_value = Arc::clone(&build_pending);
+    let build_pending = AtomicBool::new(true);
 
     let build = heroku_client(ctx).request(&builds::BuildDetails {
         app_id: app_name.clone(),
@@ -435,8 +435,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         job_interval(build_check_interval).parse().unwrap(),
         || {
             if *build_status.lock().unwrap() != "pending" {
-                let mut value = build_pending_value.lock().unwrap();
-                *value = false;
+                build_pending.store(false, Ordering::Relaxed);
             }
         },
     ));
@@ -473,7 +472,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         },
     ));
 
-    while *build_pending.lock().unwrap() {
+    while build_pending.load(Ordering::Relaxed) {
         let build = heroku_client(ctx).request(&builds::BuildDetails {
             app_id: app_name.clone(),
             build_id: build.clone().id,
