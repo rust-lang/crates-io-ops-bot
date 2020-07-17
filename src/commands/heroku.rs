@@ -469,7 +469,6 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             .parse()
             .unwrap(),
         move || {
-
             // Doing manual error handling because the try (?) operator cannot be 
             // used in a closure (As of July 2020)
             let result = msg.channel_id
@@ -487,15 +486,6 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
     ));
 
     while build_pending.load(Ordering::Relaxed) {
-//        let build = heroku_client(ctx).request(&builds::BuildDetails {
-//            app_id: app_name.clone(),
-//            build_id: build.clone().id,
-//        })?;
-
-//        let mut value = build_status_value.lock().unwrap();
-//        *value = build.status;
-//        std::mem::drop(value);
-
         sched.tick();
         std::thread::sleep(Duration::from_millis(500));
     }
