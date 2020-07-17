@@ -426,6 +426,9 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
     let build_status = Arc::new(Mutex::new(build.clone().status));
     let build_status_value = Arc::clone(&build_status);
 
+    let build_id = Arc::new(Mutex::new(build.clone().id));
+    let build_id_value = Arc::clone(&build_id);
+
     let mut sched = JobScheduler::new();
 
     let build_check_interval = bot_config(&ctx).build_check_interval.clone();
@@ -434,6 +437,22 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
     sched.add(Job::new(
         job_interval(build_check_interval).parse().unwrap(),
         || {
+            let result = heroku_client(ctx).request(&builds::BuildDetails {
+                app_id: app_name.clone(),
+                build_id: build.clone().id,
+            });
+
+            match result {
+                Ok(_build) => {},
+                Err(e) => {
+                    println!("An error occured when trying to get the build status for {}: {}", build_id_value.lock().unwrap(), e);
+                }
+            }
+
+            let mut value = build_status_value.lock().unwrap();
+            *value = build.clone().status;
+            std::mem::drop(value);
+
             if *build_status.lock().unwrap() != "pending" {
                 build_pending.store(false, Ordering::Relaxed);
             }
@@ -451,18 +470,13 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             .unwrap(),
         move || {
 
-            // Doing manual error handling
-            // Because the try (?) operator cannot be 
-            // used in a closure
-            // (As of July 2020)
+            // Doing manual error handling because the try (?) operator cannot be 
+            // used in a closure (As of July 2020)
             let result = msg.channel_id
                 .say(&context, format!("Build {} is still pending...", build_id));
 
-            // Printing to the console as 
-            // An error cannot be propogated from an closure
-            // up to the 
-            // enclosing function
-            // (As of July 2020)
+            // Printing to the console because an error cannot be propogated from an closure
+            // up to the enclosing function (As of July 2020)
             match result {
                 Ok(_result) => {},
                 Err(e) => {
@@ -473,14 +487,14 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
     ));
 
     while build_pending.load(Ordering::Relaxed) {
-        let build = heroku_client(ctx).request(&builds::BuildDetails {
-            app_id: app_name.clone(),
-            build_id: build.clone().id,
-        })?;
+//        let build = heroku_client(ctx).request(&builds::BuildDetails {
+//            app_id: app_name.clone(),
+//            build_id: build.clone().id,
+//        })?;
 
-        let mut value = build_status_value.lock().unwrap();
-        *value = build.status;
-        std::mem::drop(value);
+//        let mut value = build_status_value.lock().unwrap();
+//        *value = build.status;
+//        std::mem::drop(value);
 
         sched.tick();
         std::thread::sleep(Duration::from_millis(500));
@@ -519,7 +533,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
     }
 
     msg.reply(
-        ctx,
+        ctx.clone(),
         format!(
             "App {} commit {} has successfully been released!",
             &app_name, git_sha,
