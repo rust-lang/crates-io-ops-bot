@@ -8,9 +8,9 @@ use serenity::framework::standard::{macros::command, Args, CommandResult};
 use serenity::model::prelude::*;
 use serenity::prelude::*;
 
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -419,10 +419,10 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
     let (mut last_check, mut last_reply) = (Instant::now(), Instant::now());
 
     let build_check_interval = Duration::from_secs(bot_config(&ctx).build_check_interval);
-    let build_message_display_interval = Duration::from_secs(bot_config(&ctx).build_message_display_interval);
+    let build_message_display_interval =
+        Duration::from_secs(bot_config(&ctx).build_message_display_interval);
 
     loop {
-        
         if last_check.elapsed() >= build_check_interval {
             println!("checking build");
             let build = heroku_client(ctx).request(&builds::BuildDetails {
@@ -441,88 +441,89 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
             println!("making a reply in the channel");
             msg.channel_id
                 .say(&ctx, format!("Build {} is still pending...", &build.id))?;
-            
+
             last_reply = Instant::now();
         }
 
         std::thread::sleep(Duration::from_millis(500));
     }
 
-//    let build_pending = AtomicBool::new(true);
+    //    let build_pending = AtomicBool::new(true);
 
-/*     let build = heroku_client(ctx).request(&builds::BuildDetails {
-        app_id: app_name.clone(),
-        build_id: build.clone().id,
-    })?;
+    /*     let build = heroku_client(ctx).request(&builds::BuildDetails {
+           app_id: app_name.clone(),
+           build_id: build.clone().id,
+       })?;
 
-    let build_status = Arc::new(Mutex::new(build.clone().status));
-    let build_status_value = Arc::clone(&build_status);
+       let build_status = Arc::new(Mutex::new(build.clone().status));
+       let build_status_value = Arc::clone(&build_status);
 
-    let build_id = Arc::new(Mutex::new(build.clone().id));
-    let build_id_value = Arc::clone(&build_id);
+       let build_id = Arc::new(Mutex::new(build.clone().id));
+       let build_id_value = Arc::clone(&build_id);
 
-    let mut sched = JobScheduler::new();
+       let mut sched = JobScheduler::new();
 
-    let build_check_interval = bot_config(&ctx).build_check_interval.clone();
+       let build_check_interval = bot_config(&ctx).build_check_interval.clone();
 
-    // Set up job to periodically check if the build is complete
-    sched.add(Job::new(
-        job_interval(build_check_interval).parse().unwrap(),
-        || {
-            let result = heroku_client(ctx).request(&builds::BuildDetails {
-                app_id: app_name.clone(),
-                build_id: build.clone().id,
-            });
+       // Set up job to periodically check if the build is complete
+       sched.add(Job::new(
+           job_interval(build_check_interval).parse().unwrap(),
+           || {
+               let result = heroku_client(ctx).request(&builds::BuildDetails {
+                   app_id: app_name.clone(),
+                   build_id: build.clone().id,
+               });
 
-            match result {
-                Ok(_build) => {},
-                Err(e) => {
-                    println!("An error occured when trying to get the build status for {}: {}", build_id_value.lock().unwrap(), e);
-                }
-            }
+               match result {
+                   Ok(_build) => {},
+                   Err(e) => {
+                       println!("An error occured when trying to get the build status for {}: {}", build_id_value.lock().unwrap(), e);
+                   }
+               }
 
-            let mut value = build_status_value.lock().unwrap();
-            *value = build.clone().status;
-            std::mem::drop(value);
+               let mut value = build_status_value.lock().unwrap();
+               *value = build.clone().status;
+               std::mem::drop(value);
 
-            if *build_status.lock().unwrap() != "pending" {
-                build_pending.store(false, Ordering::Relaxed);
-            }
-        },
-    ));
+               if *build_status.lock().unwrap() != "pending" {
+                   build_pending.store(false, Ordering::Relaxed);
+               }
+           },
+       ));
 
-    // Set up job to periodically display a build status message in Discord
-    let build_id = build.clone().id;
-    let context = ctx.clone();
-    let build_message_display_interval = bot_config(&ctx).build_message_display_interval.clone();
+       // Set up job to periodically display a build status message in Discord
+       let build_id = build.clone().id;
+       let context = ctx.clone();
+       let build_message_display_interval = bot_config(&ctx).build_message_display_interval.clone();
 
-    sched.add(Job::new(
-        job_interval(build_message_display_interval)
-            .parse()
-            .unwrap(),
-        move || {
-            // Doing manual error handling because the try (?) operator cannot be 
-            // used in a closure (As of July 2020)
-            let result = msg.channel_id
-                .say(&context, format!("Build {} is still pending...", build_id));
+       sched.add(Job::new(
+           job_interval(build_message_display_interval)
+               .parse()
+               .unwrap(),
+           move || {
+               // Doing manual error handling because the try (?) operator cannot be
+               // used in a closure (As of July 2020)
+               let result = msg.channel_id
+                   .say(&context, format!("Build {} is still pending...", build_id));
 
-            // Printing to the console because an error cannot be propogated from an closure
-            // up to the enclosing function (As of July 2020)
-            match result {
-                Ok(_result) => {},
-                Err(e) => {
-                    println!("An error occured when trying to post the build pending message for {}: {}", build_id, e);
-                }
-            }
-        },
-    ));
+               // Printing to the console because an error cannot be propogated from an closure
+               // up to the enclosing function (As of July 2020)
+               match result {
+                   Ok(_result) => {},
+                   Err(e) => {
+                       println!("An error occured when trying to post the build pending message for {}: {}", build_id, e);
+                   }
+               }
+           },
+       ));
 
-    while build_pending.load(Ordering::Relaxed) {
-        sched.tick();
-        std::thread::sleep(Duration::from_millis(500));
-    }
+       while build_pending.load(Ordering::Relaxed) {
+           sched.tick();
+           std::thread::sleep(Duration::from_millis(500));
+       }
 
- */    // Release the new build
+    */
+ // Release the new build
     let final_build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
         app_id: app_name.clone(),
         build_id: build.clone().id,
