@@ -14,6 +14,7 @@ use std::collections::HashSet;
 
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::time::{Duration, Instant};
 
 use crate::config::Config;
 
@@ -23,7 +24,6 @@ use reqwest::blocking::Client as reqwest_client;
 use reqwest::header::{self, HeaderMap, HeaderValue};
 
 use job_scheduler::{Job, JobScheduler};
-use std::time::Duration;
 
 #[derive(Debug, Deserialize)]
 struct HerokuApp {
@@ -416,9 +416,41 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
 
     msg.reply(&ctx, build_response(&app_name, &build))?;
 
-    let build_pending = AtomicBool::new(true);
+    let (mut last_check, mut last_reply) = (Instant::now(), Instant::now());
 
-    let build = heroku_client(ctx).request(&builds::BuildDetails {
+    let build_check_interval = Duration::from_secs(bot_config(&ctx).build_check_interval);
+    let build_message_display_interval = Duration::from_secs(bot_config(&ctx).build_message_display_interval);
+
+    loop {
+        
+        if last_check.elapsed() >= build_check_interval {
+            println!("checking build");
+            let build = heroku_client(ctx).request(&builds::BuildDetails {
+                app_id: app_name.clone(),
+                build_id: build.clone().id,
+            })?;
+
+            if build.status != "pending" {
+                break;
+            }
+
+            last_check = Instant::now();
+        }
+
+        if last_reply.elapsed() >= build_message_display_interval {
+            println!("making a reply in the channel");
+            msg.channel_id
+                .say(&ctx, format!("Build {} is still pending...", &build.id))?;
+            
+            last_reply = Instant::now();
+        }
+
+        std::thread::sleep(Duration::from_millis(500));
+    }
+
+//    let build_pending = AtomicBool::new(true);
+
+/*     let build = heroku_client(ctx).request(&builds::BuildDetails {
         app_id: app_name.clone(),
         build_id: build.clone().id,
     })?;
@@ -490,7 +522,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         std::thread::sleep(Duration::from_millis(500));
     }
 
-    // Release the new build
+ */    // Release the new build
     let final_build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
         app_id: app_name.clone(),
         build_id: build.clone().id,
