@@ -240,7 +240,8 @@ Build a30c6830-7e47-47ce-9f8d-1a883e4a9beb is still pending...
 
 This command will:
 * Create a build of the code
-* Provide updates on the build while it is in progress (this is configurable through the BUILD_CHECK_INTERVAL environmental variable)
+* Periodically check the build for progress (this is configurable through the BUILD_CHECK_INTERVAL environmental variable)
+* Periodically display messages in the Discord channel that the build is still pending (this is configurable through the BUILD_MESSAGE_DISPLAY_INTERVAL environmental variable)
 * Release the application as the version you specified
 
 **!rollback_app**
@@ -419,9 +420,25 @@ BUILD_CHECK_INTERVAL="5"
 To use the build check interval in a CI/CD or production environment, make sure to set it wherever you define your environmental variables
 for that environment.
 
+### Setting up the Build Message Display Interval
+
+The !deploy_app command kicks of a build of your application and periodically checks the build to see if it is still pending. This environmental variable allows you to configure how often messages are sent to the Discord channel indicating that the build is still pending.
+
+This will set the build message display interval to **30 seconds**
+
+**.env**
+```
+BUILD_CHECK_INTERVAL="30"
+```
+
+To use the build message display interval in a CI/CD or production environment, make sure to set it wherever you define your environmental variables
+for that environment.
+
 ### Running locally
 
 You can run this bot in your local environment with this command (make sure you are in the directory for your copy of this repo)
+
+NOTE: You must be in the [rust team repository](https://github.com/rust-lang/team/) with a discord id listed (like in [this entry](https://github.com/rust-lang/team/blob/master/people/nellshamrell.toml)) to be able to run the bot.
 
 ```bash
 cargo run
@@ -455,21 +472,9 @@ becomes
 VAR1=value1
 ```
 
-**Without Building**
-If you do not need to make changes to the code itself, you can run it by pulling from the nellshamrell/crates-io-ops-bot docker repository (it will eventually be moved to rustlang/crates-io-ops-bot or another more appropriate repository).
-
-```bash
-docker pull nellshamrell/crates-io-ops-bot:latest
-docker run --env-file docker_env.list -it -t nellshamrell/crates-io-ops-bot
-```
-
-**With Building**
-You can also build the containg image on your own machine and then run a container from it:
+Then you must build and run the container image:
 
 ```bash
 docker build -t your_name/crates-io-ops-bot .
 docker run --env-file docker_env.list -i -t your_name/crates-io-ops-bot
 ```
-
-### Running with Docker in Production
-You can also run this bot in a container on your production system - using the nellshamrell/crates-io-ops-bot image or your own built image.

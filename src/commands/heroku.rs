@@ -11,7 +11,7 @@ use serenity::prelude::*;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-use std::{thread, time};
+use std::time::{Duration, Instant};
 
 use crate::config::Config;
 
@@ -389,15 +389,12 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         .client
         .get(&commit_info_url(ctx, git_ref))
         .headers(new_github_client.headers);
-
     let github_response = github_request
         .send()
         .and_then(|res| res.error_for_status())?;
-
     let response_text = github_response.text().unwrap();
 
     let github_json: GitHubResponse = serde_json::from_str(&response_text).unwrap();
-
     let git_sha = github_json.sha;
 
     let build = heroku_client(ctx).request(&builds::BuildCreate {
@@ -414,23 +411,36 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
 
     msg.reply(&ctx, build_response(&app_name, &build))?;
 
-    let mut build_pending = true;
+    let (mut last_check, mut last_reply) = (Instant::now(), Instant::now());
 
-    while build_pending {
-        let build = heroku_client(ctx).request(&builds::BuildDetails {
-            app_id: app_name.clone(),
-            build_id: build.clone().id,
-        })?;
+    let build_check_interval = Duration::from_secs(bot_config(&ctx).build_check_interval);
+    let build_message_display_interval =
+        Duration::from_secs(bot_config(&ctx).build_message_display_interval);
 
-        if build.status == "pending" {
+    loop {
+        if last_check.elapsed() >= build_check_interval {
+            println!("checking build");
+            let build = heroku_client(ctx).request(&builds::BuildDetails {
+                app_id: app_name.clone(),
+                build_id: build.clone().id,
+            })?;
+
+            if build.status != "pending" {
+                break;
+            }
+
+            last_check = Instant::now();
+        }
+
+        if last_reply.elapsed() >= build_message_display_interval {
+            println!("making a reply in the channel");
             msg.channel_id
                 .say(&ctx, format!("Build {} is still pending...", &build.id))?;
 
-            let duration = time::Duration::from_secs(bot_config(&ctx).build_check_interval);
-            thread::sleep(duration);
-        } else {
-            build_pending = false
+            last_reply = Instant::now();
         }
+
+        std::thread::sleep(Duration::from_millis(500));
     }
 
     // Release the new build
@@ -466,7 +476,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
     }
 
     msg.reply(
-        ctx,
+        ctx.clone(),
         format!(
             "App {} commit {} has successfully been released!",
             &app_name, git_sha,

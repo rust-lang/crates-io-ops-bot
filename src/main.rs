@@ -10,6 +10,7 @@ fn main() {
         dotenv::var("DISCORD_TOKEN").expect("DISCORD_TOKEN must be set"),
         dotenv::var("HEROKU_API_KEY").expect("HEROKU_API_KEY must be set"),
         dotenv::var("BUILD_CHECK_INTERVAL").expect("BUILD_CHECK_INTERVAL must be set"),
+        dotenv::var("BUILD_MESSAGE_DISPLAY_INTERVAL").expect("BUILD_CHECK_INTERVAL must be set"),
         dotenv::var("GITHUB_ORG").expect("GITHUB_ORG must be set"),
         dotenv::var("GITHUB_REPO").expect("GITHUB_REPO must be set"),
         dotenv::var("GITHUB_TOKEN").expect("GITHUB_TOKEN must be set"),
