@@ -10,10 +10,7 @@ use serenity::prelude::*;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::sync::atomic::{AtomicBool, Ordering};
 
-use std::sync::Arc;
-use std::sync::Mutex;
 use std::time::{Duration, Instant};
 
 use crate::config::Config;
@@ -22,8 +19,6 @@ use crate::utilities::*;
 
 use reqwest::blocking::Client as reqwest_client;
 use reqwest::header::{self, HeaderMap, HeaderValue};
-
-use job_scheduler::{Job, JobScheduler};
 
 #[derive(Debug, Deserialize)]
 struct HerokuApp {
@@ -448,82 +443,7 @@ pub fn deploy_app(ctx: &mut Context, msg: &Message, mut args: Args) -> CommandRe
         std::thread::sleep(Duration::from_millis(500));
     }
 
-    //    let build_pending = AtomicBool::new(true);
-
-    /*     let build = heroku_client(ctx).request(&builds::BuildDetails {
-           app_id: app_name.clone(),
-           build_id: build.clone().id,
-       })?;
-
-       let build_status = Arc::new(Mutex::new(build.clone().status));
-       let build_status_value = Arc::clone(&build_status);
-
-       let build_id = Arc::new(Mutex::new(build.clone().id));
-       let build_id_value = Arc::clone(&build_id);
-
-       let mut sched = JobScheduler::new();
-
-       let build_check_interval = bot_config(&ctx).build_check_interval.clone();
-
-       // Set up job to periodically check if the build is complete
-       sched.add(Job::new(
-           job_interval(build_check_interval).parse().unwrap(),
-           || {
-               let result = heroku_client(ctx).request(&builds::BuildDetails {
-                   app_id: app_name.clone(),
-                   build_id: build.clone().id,
-               });
-
-               match result {
-                   Ok(_build) => {},
-                   Err(e) => {
-                       println!("An error occured when trying to get the build status for {}: {}", build_id_value.lock().unwrap(), e);
-                   }
-               }
-
-               let mut value = build_status_value.lock().unwrap();
-               *value = build.clone().status;
-               std::mem::drop(value);
-
-               if *build_status.lock().unwrap() != "pending" {
-                   build_pending.store(false, Ordering::Relaxed);
-               }
-           },
-       ));
-
-       // Set up job to periodically display a build status message in Discord
-       let build_id = build.clone().id;
-       let context = ctx.clone();
-       let build_message_display_interval = bot_config(&ctx).build_message_display_interval.clone();
-
-       sched.add(Job::new(
-           job_interval(build_message_display_interval)
-               .parse()
-               .unwrap(),
-           move || {
-               // Doing manual error handling because the try (?) operator cannot be
-               // used in a closure (As of July 2020)
-               let result = msg.channel_id
-                   .say(&context, format!("Build {} is still pending...", build_id));
-
-               // Printing to the console because an error cannot be propogated from an closure
-               // up to the enclosing function (As of July 2020)
-               match result {
-                   Ok(_result) => {},
-                   Err(e) => {
-                       println!("An error occured when trying to post the build pending message for {}: {}", build_id, e);
-                   }
-               }
-           },
-       ));
-
-       while build_pending.load(Ordering::Relaxed) {
-           sched.tick();
-           std::thread::sleep(Duration::from_millis(500));
-       }
-
-    */
- // Release the new build
+    // Release the new build
     let final_build_info_response = heroku_client(ctx).request(&builds::BuildDetails {
         app_id: app_name.clone(),
         build_id: build.clone().id,
@@ -720,9 +640,4 @@ fn source_url(ctx: &Context, git_sha: &str) -> String {
         bot_config(ctx).github_repo,
         git_sha,
     )
-}
-
-fn job_interval(interval: String) -> String {
-    let interval_string = format!("1/{} * * * * *", interval);
-    interval_string
 }
