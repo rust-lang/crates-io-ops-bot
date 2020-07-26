@@ -1,7 +1,7 @@
 # ops-bot
 a bot to help assist the crates.io, website, and other rust ops teams
 
-[![Build Status](https://travis-ci.com/rust-lang/ops-bot.svg?token=hHeDp9pQmz9kvsgRNVHy&branch=master)](https://travis-ci.com/rust-lang/ops-bot)
+[![CI](https://github.com/rust-lang/crates-io-ops-bot/workflows/CI/badge.svg)](https://github.com/rust-lang/crates-io-ops-bot/actions)
 
 **This project is currently under development**
 
@@ -351,7 +351,7 @@ cd crates-io-ops-bot
 
 ### Setting Up a Discord Application
 
-To use this bot, you will need to set up a Discord application through the [Discorse Developer Portal](https://discordapp.com/developers/). 
+To use this bot, you will need to set up a Discord application through the [Discord Developer Portal](https://discordapp.com/developers/).
 
 [This blog post on Davao JS](https://medium.com/davao-js/2019-tutorial-creating-your-first-simple-discord-bot-47fc836a170b) has a good guide
 on creating a Discord application and generating the token key. Skip to the "Generating Token Key" heading in the post and come back here
