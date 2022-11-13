@@ -3,7 +3,7 @@ a bot to help assist the crates.io, website, and other rust ops teams
 
 [![CI](https://github.com/rust-lang/crates-io-ops-bot/workflows/CI/badge.svg)](https://github.com/rust-lang/crates-io-ops-bot/actions)
 
-**This project is currently under development**
+**This project is not used in production anymore, and is now archived.**
 
 ## Intro
 
